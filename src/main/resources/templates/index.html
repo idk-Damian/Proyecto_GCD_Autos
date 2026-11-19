@@ -1,0 +1,2993 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel · Taller Mecánico</title>
+    <!-- Token CSRF para las peticiones fetch -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        /* =========================================================
+           PALETA: Olive + Beige
+           ========================================================= */
+        :root {
+            --olive: #6B8E5A;        /* acento, íconos, foco */
+            --olive-600: #5A7A4A;    /* botones (contraste AA con blanco) */
+            --olive-700: #4E6B40;    /* hover */
+            --olive-900: #2F3F27;    /* navbar, títulos fuertes */
+            --olive-50: #EEF3EA;
+            --beige: #EADCC8;
+            --beige-100: #F6F0E7;    /* fondo de página */
+            --beige-50: #FBF8F3;     /* fondos suaves */
+            --ink: #2B2A26;          /* texto principal */
+            --muted: #6E6A60;        /* texto secundario */
+            --border: #E3D6C2;
+            --danger: #A94438;
+            --danger-50: #F6E4E1;
+            --radius: .9rem;
+        }
+
+        body {
+            background: var(--beige-100);
+            font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            color: var(--ink);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .text-muted-2 { color: var(--muted) !important; }
+        .font-serif { font-family: "DM Serif Display", Georgia, serif; font-weight: 400; }
+
+        /* ---------- Navbar ---------- */
+        .topbar {
+            background: var(--olive-900);
+            color: var(--beige);
+        }
+        .brand-logo {
+            width: 38px; height: 38px; border-radius: 10px;
+            background: var(--olive);
+            display: inline-flex; align-items: center; justify-content: center;
+            color: var(--beige-50); font-size: 1.15rem;
+        }
+        .brand-name { font-family: "DM Serif Display", Georgia, serif; font-size: 1.35rem; color: var(--beige-50); line-height: 1; }
+        .brand-sub { font-size: .72rem; color: var(--beige); opacity: .75; letter-spacing: .3px; }
+        .avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: var(--beige); color: var(--olive-900);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: .8rem;
+        }
+        .role-chip {
+            font-size: .68rem; font-weight: 700; letter-spacing: .4px;
+            padding: .15rem .5rem; border-radius: 999px;
+            background: rgba(234, 220, 200, .15); color: var(--beige);
+            border: 1px solid rgba(234, 220, 200, .35);
+        }
+        .btn-logout {
+            color: var(--beige); border: 1px solid rgba(234, 220, 200, .4);
+            font-size: .85rem;
+        }
+        .btn-logout:hover { background: var(--beige); color: var(--olive-900); }
+
+        /* ---------- Botones ---------- */
+        .btn-olive { background: var(--olive-600); color: #fff; border: none; font-weight: 600; }
+        .btn-olive:hover, .btn-olive:focus, .btn-olive:active { background: var(--olive-700) !important; color: #fff !important; }
+        .btn-soft {
+            background: #fff; color: var(--ink); border: 1px solid var(--border); font-weight: 500;
+        }
+        .btn-soft:hover { background: var(--beige-50); border-color: var(--olive); color: var(--olive-900); }
+        .btn-danger-soft { background: var(--danger); color: #fff; border: none; font-weight: 600; }
+        .btn-danger-soft:hover { background: #8F372D; color: #fff; }
+
+        .btn-icon {
+            width: 32px; height: 32px; padding: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: .5rem; border: 1px solid transparent;
+            background: transparent; color: var(--muted);
+            transition: all .15s;
+        }
+        .btn-icon:hover { background: var(--olive-50); color: var(--olive-900); border-color: var(--border); }
+        .btn-icon.danger:hover { background: var(--danger-50); color: var(--danger); }
+        .btn-step {
+            font-size: .78rem; font-weight: 600; padding: .25rem .6rem; border-radius: .5rem;
+            background: var(--olive-50); color: var(--olive-900); border: 1px solid #CFDDC6;
+        }
+        .btn-step:hover { background: var(--olive-600); color: #fff; border-color: var(--olive-600); }
+
+        /* ---------- Formularios ---------- */
+        .form-control, .form-select { border-color: var(--border); }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--olive);
+            box-shadow: 0 0 0 .2rem rgba(107, 142, 90, .22);
+        }
+        .form-label { font-size: .8rem; font-weight: 600; color: var(--ink); margin-bottom: .3rem; }
+        .input-group-text { background: var(--beige-50); border-color: var(--border); color: var(--muted); }
+        .form-hint { font-size: .75rem; color: var(--muted); }
+
+        /* ---------- Encabezado de página ---------- */
+        .page-title { font-family: "DM Serif Display", Georgia, serif; font-size: 2rem; color: var(--olive-900); }
+
+        /* ---------- KPIs ---------- */
+        .kpi {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.1rem 1.2rem;
+            display: flex; gap: 1rem; align-items: center;
+            width: 100%; height: 100%; text-align: left;
+            transition: border-color .15s, box-shadow .15s, transform .15s;
+        }
+        .kpi:hover { border-color: var(--olive); box-shadow: 0 6px 18px rgba(47, 63, 39, .08); transform: translateY(-1px); }
+        .kpi:focus-visible { outline: 3px solid rgba(107, 142, 90, .4); }
+        .kpi-icon {
+            width: 48px; height: 48px; flex-shrink: 0; border-radius: .75rem;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--beige-100); color: var(--olive-700); font-size: 1.35rem;
+        }
+        .kpi-label { font-size: .75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+        .kpi-value { font-size: 1.75rem; font-weight: 700; line-height: 1.1; color: var(--ink); }
+        .kpi-caption { font-size: .78rem; color: var(--muted); }
+        .kpi-link { font-size: .75rem; color: var(--olive-700); font-weight: 600; margin-left: auto; align-self: flex-end; white-space: nowrap; }
+
+        /* ---------- Tarjeta principal + tabs ---------- */
+        .panel {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+        .panel-tabs { border-bottom: 1px solid var(--border); padding: 0 1rem; gap: .1rem; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; }
+        .panel-tabs .nav-item { flex-shrink: 0; }
+        .panel-tabs .nav-link {
+            border: none; border-bottom: 3px solid transparent; border-radius: 0;
+            color: var(--muted); font-weight: 600; font-size: .92rem;
+            padding: 1rem .65rem .85rem; white-space: nowrap;
+            display: flex; align-items: center; gap: .5rem;
+        }
+        .panel-tabs .nav-link:hover { color: var(--olive-900); }
+        .panel-tabs .nav-link.active { color: var(--olive-900); border-bottom-color: var(--olive); background: transparent; }
+        .tab-count {
+            font-size: .7rem; font-weight: 700; padding: .1rem .45rem; border-radius: 999px;
+            background: var(--beige-100); color: var(--muted);
+        }
+        .nav-link.active .tab-count { background: var(--olive-50); color: var(--olive-700); }
+
+        /* ---------- Tablas ---------- */
+        .table-taller { margin: 0; }
+        .table-taller thead th {
+            background: var(--beige-50);
+            color: var(--muted);
+            font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+            border-bottom: 1px solid var(--border);
+            padding: .75rem 1rem; white-space: nowrap;
+        }
+        .table-taller tbody td { padding: .8rem 1rem; border-color: #EFE6D8; vertical-align: middle; font-size: .9rem; }
+        .table-taller tbody tr:hover td { background: var(--beige-50); }
+        .table-wrap { border: 1px solid var(--border); border-radius: .75rem; overflow: hidden; }
+
+        .placa {
+            display: inline-block;
+            font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+            font-weight: 700; font-size: .82rem; letter-spacing: 1px;
+            padding: .2rem .55rem; border-radius: .35rem;
+            background: #fff; color: var(--ink);
+            border: 1.5px solid var(--ink);
+            border-top: 4px solid var(--olive);
+            white-space: nowrap;
+        }
+        .codigo { font-family: ui-monospace, Consolas, monospace; font-weight: 600; color: var(--olive-900); font-size: .85rem; white-space: nowrap; }
+        .truncate { max-width: 230px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        #modalHistorial .truncate { max-width: 150px; }
+        #modalHistorial td { white-space: nowrap; }
+        #modalHistorial .chip-reciente { display: block; width: fit-content; margin: .2rem 0 0 !important; }
+        .monto { font-weight: 700; color: var(--ink); white-space: nowrap; }
+
+        /* ---------- Badges de estado ---------- */
+        .estado {
+            display: inline-flex; align-items: center; gap: .35rem;
+            font-size: .75rem; font-weight: 600; padding: .25rem .6rem; border-radius: 999px; white-space: nowrap;
+        }
+        .estado::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+        .e-ingresado  { background: #EFE8DC; color: #5C564B; }
+        .e-diagnostico{ background: #F7E7C6; color: #7A5410; }
+        .e-reparacion { background: #DDE7EE; color: #2F5872; }
+        .e-listo      { background: #DCE8D3; color: #3F5634; }
+        .e-entregado  { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+        .e-pendiente  { background: #F7E7C6; color: #7A5410; }
+        .e-proceso    { background: #DDE7EE; color: #2F5872; }
+        .e-finalizado { background: #DCE8D3; color: #3F5634; }
+
+        .tipo { font-size: .72rem; font-weight: 600; padding: .15rem .5rem; border-radius: .35rem; border: 1px solid; }
+        .t-preventivo { color: var(--olive-700); border-color: #C5D6BA; background: var(--olive-50); }
+        .t-correctivo { color: var(--danger); border-color: #E6C4BE; background: var(--danger-50); }
+
+        .link-chip {
+            font-size: .78rem; font-weight: 600; padding: .2rem .55rem; border-radius: 999px;
+            background: var(--beige-100); color: var(--olive-900); border: none;
+        }
+        .link-chip:hover { background: var(--beige); }
+
+        .empty {
+            text-align: center; padding: 3rem 1rem; color: var(--muted);
+        }
+        .empty i { font-size: 2rem; color: var(--beige); display: block; margin-bottom: .5rem; }
+
+        /* ---------- Modales ---------- */
+        .modal-content { border: none; border-radius: var(--radius); }
+        .modal-header { border-bottom: 1px solid var(--border); background: var(--beige-50); border-radius: var(--radius) var(--radius) 0 0; }
+        .modal-title { font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 1.4rem; color: var(--olive-900); }
+        .modal-footer { border-top: 1px solid var(--border); }
+        .section-title { font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: .6rem; }
+        .vehiculo-box { background: var(--beige-50); border: 1px solid var(--border); border-radius: .6rem; padding: .7rem .9rem; }
+
+        .detalle-table td, .detalle-table th { padding: .45rem .5rem; font-size: .85rem; vertical-align: middle; }
+        .detalle-table thead th { background: var(--beige-50); color: var(--muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .4px; }
+        .totales { background: var(--beige-50); border: 1px solid var(--border); border-radius: .6rem; padding: .8rem 1rem; }
+        .totales .total { font-size: 1.35rem; font-weight: 700; color: var(--olive-900); }
+
+        /* ---------- Toast ---------- */
+        .toast-container { z-index: 1090; }
+        .toast { border: none; border-radius: .7rem; }
+        .toast.ok { background: var(--olive-900); color: var(--beige-50); }
+        .toast.error { background: var(--danger); color: #fff; }
+
+        footer { color: var(--muted); font-size: .78rem; }
+
+        /* ---------- Alertas bajo los KPIs ---------- */
+        .alerta {
+            display: inline-flex; align-items: center; gap: .5rem;
+            font-size: .85rem; font-weight: 500; padding: .5rem .85rem; border-radius: .6rem;
+            border: 1px solid; background: #fff; cursor: pointer;
+        }
+        .alerta:hover { filter: brightness(.97); }
+        .alerta-roja { color: var(--danger); border-color: #E6C4BE; background: var(--danger-50); }
+        .alerta-ambar { color: #7A5410; border-color: #EBD3A0; background: #FBF1DC; }
+
+        /* ---------- Inventario ---------- */
+        .stock { font-weight: 700; white-space: nowrap; }
+        .stock-bajo { color: var(--danger); }
+        .stock-ok { color: var(--olive-700); }
+        .barra-stock { height: 5px; border-radius: 3px; background: var(--beige-100); overflow: hidden; width: 90px; margin-top: 4px; }
+        .barra-stock > span { display: block; height: 100%; background: var(--olive); }
+        .barra-stock.baja > span { background: var(--danger); }
+        .resumen-mini { background: var(--beige-50); border: 1px solid var(--border); border-radius: .6rem; padding: .45rem .8rem; font-size: .82rem; color: var(--muted); }
+        .resumen-mini b { color: var(--ink); }
+
+        /* ---------- Recordatorios ---------- */
+        .e-vencido  { background: var(--danger-50); color: var(--danger); }
+        .e-proximo  { background: #F7E7C6; color: #7A5410; }
+        .e-aldia    { background: #DCE8D3; color: #3F5634; }
+        .e-sinhist  { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+        .btn-wa { color: #1E7B4A; }
+        .btn-wa:hover { background: #E3F3EA; color: #1E7B4A; }
+
+        /* ---------- Reportes ---------- */
+        .rep-kpi { background: var(--beige-50); border: 1px solid var(--border); border-radius: .75rem; padding: .9rem 1rem; height: 100%; }
+        .rep-kpi .v { font-size: 1.45rem; font-weight: 700; color: var(--ink); }
+        .rep-kpi .l { font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+        .rep-card { border: 1px solid var(--border); border-radius: .75rem; padding: 1rem 1.1rem; height: 100%; }
+        .rep-card h6 { font-weight: 700; font-size: .9rem; color: var(--olive-900); margin-bottom: .8rem; }
+        .barra-h { display: grid; grid-template-columns: 1fr auto; column-gap: .6rem; row-gap: .25rem; align-items: center; font-size: .84rem; margin-bottom: .7rem; }
+        .barra-h .track { grid-column: 1 / -1; grid-row: 2; }
+        .barra-h .track { height: 10px; background: var(--beige-100); border-radius: 5px; overflow: hidden; }
+        .barra-h .track span { display: block; height: 100%; background: var(--olive); border-radius: 5px; }
+        .barra-h .etq { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .chart-dias { display: flex; align-items: flex-end; gap: 4px; height: 160px; padding-top: .5rem; border-bottom: 1px solid var(--border); }
+        .chart-dias .col-bar { flex: 1; min-width: 6px; background: var(--olive); border-radius: 4px 4px 0 0; position: relative; }
+        .chart-dias .col-bar:hover { background: var(--olive-700); }
+        .split { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: var(--beige-100); }
+        .split span { display: block; height: 100%; }
+        .leyenda i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: .35rem; vertical-align: middle; }
+        .chip-rango { font-size: .8rem; }
+
+        /* ---------- Historial / solicitudes / auditoría ---------- */
+        .fila-reciente td { background: #F3F7EF !important; }
+        .chip-reciente { font-size: .66rem; font-weight: 700; padding: .12rem .45rem; border-radius: 999px; background: var(--olive-900); color: var(--beige-50); white-space: nowrap; }
+        .ultimo-box { background: #F3F7EF; border: 1px solid #C5D6BA; border-radius: .7rem; padding: .8rem 1rem; }
+        .acc { font-size: .7rem; font-weight: 700; padding: .15rem .5rem; border-radius: .35rem; letter-spacing: .3px; }
+        .acc-CREAR { background: #DCE8D3; color: #3F5634; }
+        .acc-ACTUALIZAR, .acc-STOCK { background: #DDE7EE; color: #2F5872; }
+        .acc-ESTADO, .acc-APROBAR { background: #F7E7C6; color: #7A5410; }
+        .acc-ELIMINAR, .acc-LOGIN_FALLIDO { background: var(--danger-50); color: var(--danger); }
+        .acc-LOGIN { background: var(--beige-100); color: var(--muted); }
+        .credencial { font-family: ui-monospace, Consolas, monospace; font-size: 1.1rem; font-weight: 700; background: var(--beige-50);
+                      border: 1px dashed var(--border); border-radius: .5rem; padding: .5rem .8rem; }
+    </style>
+</head>
+<body>
+
+<!-- =========================================================
+     NAVBAR
+     ========================================================= -->
+<header class="topbar sticky-top">
+    <div class="container-xxl px-4 py-2 d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2">
+            <span class="brand-logo"><i class="bi bi-wrench-adjustable"></i></span>
+            <div>
+                <div class="brand-name">Taller Mecánico</div>
+                <div class="brand-sub">Gestión vehicular</div>
+            </div>
+        </div>
+
+        <div class="ms-auto d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <span class="avatar" id="avatarIniciales">U</span>
+                <div class="d-none d-sm-block lh-sm">
+                    <div class="fw-semibold small text-white" th:text="${nombreUsuario}">Usuario</div>
+                    <span class="role-chip" th:text="${esAdmin} ? 'ADMINISTRADOR' : 'MECÁNICO'">ROL</span>
+                </div>
+            </div>
+            <form th:action="@{/logout}" method="post" class="m-0">
+                <button type="submit" class="btn btn-sm btn-logout d-flex align-items-center gap-1">
+                    <i class="bi bi-box-arrow-right"></i><span class="d-none d-md-inline">Salir</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<main class="container-xxl px-4 py-4 flex-grow-1">
+
+    <!-- Encabezado -->
+    <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-4">
+        <div>
+            <div class="text-muted-2 small" id="fechaHoy"></div>
+            <h1 class="page-title mb-0">Hola, <span th:text="${nombreUsuario}">Usuario</span></h1>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-soft btn-sm" onclick="abrirModalOrden()"><i class="bi bi-clipboard-plus me-1"></i>Nueva orden</button>
+            <button class="btn btn-olive btn-sm" onclick="abrirModalAuto()"><i class="bi bi-plus-lg me-1"></i>Recibir vehículo</button>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         KPIs (clic = filtra la tabla correspondiente)
+         ========================================================= -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <button class="kpi" onclick="irAAutos('EN_TALLER')">
+                <span class="kpi-icon"><i class="bi bi-car-front"></i></span>
+                <span>
+                    <span class="kpi-label d-block">En taller</span>
+                    <span class="kpi-value d-block" id="kpiEnTaller">0</span>
+                    <span class="kpi-caption">Vehículos activos ahora</span>
+                </span>
+            </button>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <button class="kpi" onclick="irAAutos('Listo')">
+                <span class="kpi-icon"><i class="bi bi-check2-circle"></i></span>
+                <span>
+                    <span class="kpi-label d-block">Listos para entrega</span>
+                    <span class="kpi-value d-block" id="kpiListos">0</span>
+                    <span class="kpi-caption">Avisar al cliente</span>
+                </span>
+            </button>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <button class="kpi" onclick="irAOrdenes('ABIERTAS')">
+                <span class="kpi-icon"><i class="bi bi-clipboard2-pulse"></i></span>
+                <span>
+                    <span class="kpi-label d-block">Órdenes abiertas</span>
+                    <span class="kpi-value d-block" id="kpiAbiertas">0</span>
+                    <span class="kpi-caption" id="kpiAbiertasDetalle">Pendientes y en proceso</span>
+                </span>
+            </button>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <button class="kpi" onclick="irAOrdenes('Finalizado')">
+                <span class="kpi-icon"><i class="bi bi-cash-coin"></i></span>
+                <span>
+                    <span class="kpi-label d-block">Facturado este mes</span>
+                    <span class="kpi-value d-block" id="kpiIngresos">$0.00</span>
+                    <span class="kpi-caption" id="kpiIngresosDetalle">Órdenes finalizadas</span>
+                </span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Alertas: mantenimientos vencidos y stock bajo -->
+    <div id="alertas" class="d-flex flex-wrap gap-2 mb-4 d-none"></div>
+
+    <!-- =========================================================
+         PANEL PRINCIPAL CON PESTAÑAS
+         ========================================================= -->
+    <section class="panel">
+        <ul class="nav panel-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tab-autos-btn" data-bs-toggle="tab" data-bs-target="#tab-autos" type="button" role="tab">
+                    <i class="bi bi-car-front"></i>Vehículos <span class="tab-count" id="countAutos">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-ordenes-btn" data-bs-toggle="tab" data-bs-target="#tab-ordenes" type="button" role="tab">
+                    <i class="bi bi-clipboard2-check"></i>Órdenes <span class="tab-count" id="countOrdenes">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-solicitudes-btn" data-bs-toggle="tab" data-bs-target="#tab-solicitudes" type="button" role="tab">
+                    <i class="bi bi-calendar-check"></i>Solicitudes <span class="tab-count" id="countSolicitudes">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-clientes-btn" data-bs-toggle="tab" data-bs-target="#tab-clientes" type="button" role="tab">
+                    <i class="bi bi-people"></i>Clientes <span class="tab-count" id="countClientes">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-inventario-btn" data-bs-toggle="tab" data-bs-target="#tab-inventario" type="button" role="tab">
+                    <i class="bi bi-box-seam"></i>Inventario <span class="tab-count" id="countInventario">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-recordatorios-btn" data-bs-toggle="tab" data-bs-target="#tab-recordatorios" type="button" role="tab">
+                    <i class="bi bi-bell"></i>Recordatorios <span class="tab-count" id="countRecordatorios">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation" th:if="${esAdmin}">
+                <button class="nav-link" id="tab-reportes-btn" data-bs-toggle="tab" data-bs-target="#tab-reportes" type="button" role="tab">
+                    <i class="bi bi-bar-chart-line"></i>Reportes
+                </button>
+            </li>
+            <li class="nav-item" role="presentation" th:if="${esAdmin}">
+                <button class="nav-link" id="tab-auditoria-btn" data-bs-toggle="tab" data-bs-target="#tab-auditoria" type="button" role="tab">
+                    <i class="bi bi-journal-text"></i>Auditoría
+                </button>
+            </li>
+            <li class="nav-item" role="presentation" th:if="${esAdmin}">
+                <button class="nav-link" id="tab-usuarios-btn" data-bs-toggle="tab" data-bs-target="#tab-usuarios" type="button" role="tab">
+                    <i class="bi bi-person-gear"></i>Usuarios
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content p-3 p-md-4">
+
+            <!-- ================= VEHÍCULOS ================= -->
+            <div class="tab-pane fade show active" id="tab-autos" role="tabpanel">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <div class="input-group" style="max-width: 380px;">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="search" id="buscarAuto" class="form-control" placeholder="Placa, marca, propietario o cédula…" oninput="renderAutos()">
+                    </div>
+                    <select id="filtroEstadoAuto" class="form-select" style="max-width: 220px;" onchange="renderAutos()">
+                        <option value="">Todos los estados</option>
+                        <option value="EN_TALLER">En taller (activos)</option>
+                        <option value="Ingresado">Ingresado</option>
+                        <option value="En Diagnóstico">En Diagnóstico</option>
+                        <option value="En Reparación">En Reparación</option>
+                        <option value="Listo">Listo</option>
+                        <option value="Entregado">Entregado</option>
+                    </select>
+                    <button class="btn btn-soft" onclick="limpiarFiltrosAutos()" title="Limpiar filtros"><i class="bi bi-x-lg"></i></button>
+                    <button class="btn btn-olive ms-auto" onclick="abrirModalAuto()"><i class="bi bi-plus-lg me-1"></i>Recibir vehículo</button>
+                </div>
+                <div class="table-wrap table-responsive">
+                    <table class="table table-taller">
+                        <thead>
+                            <tr>
+                                <th>Placa</th>
+                                <th>Vehículo</th>
+                                <th>Color</th>
+                                <th class="text-end">Kilometraje</th>
+                                <th>Propietario</th>
+                                <th>Estado</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaAutos"><tr><td colspan="7" class="empty">Cargando…</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ================= ÓRDENES ================= -->
+            <div class="tab-pane fade" id="tab-ordenes" role="tabpanel">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <div class="input-group" style="max-width: 380px;">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="search" id="buscarOrden" class="form-control" placeholder="Código, placa, diagnóstico o mecánico…" oninput="renderOrdenes()">
+                    </div>
+                    <select id="filtroEstadoOrden" class="form-select" style="max-width: 220px;" onchange="renderOrdenes()">
+                        <option value="">Todos los estados</option>
+                        <option value="ABIERTAS">Abiertas</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="En Proceso">En Proceso</option>
+                        <option value="Finalizado">Finalizado</option>
+                    </select>
+                    <button class="btn btn-soft" onclick="limpiarFiltrosOrdenes()" title="Limpiar filtros"><i class="bi bi-x-lg"></i></button>
+                    <button class="btn btn-olive ms-auto" onclick="abrirModalOrden()"><i class="bi bi-clipboard-plus me-1"></i>Nueva orden</button>
+                </div>
+                <div class="table-wrap table-responsive">
+                    <table class="table table-taller">
+                        <thead>
+                            <tr>
+                                <th>Orden</th>
+                                <th>Fecha</th>
+                                <th>Vehículo</th>
+                                <th>Tipo</th>
+                                <th>Diagnóstico</th>
+                                <th>Mecánico</th>
+                                <th class="text-end">Total</th>
+                                <th>Estado</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaOrdenes"><tr><td colspan="9" class="empty">Cargando…</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ================= SOLICITUDES DEL PORTAL ================= -->
+            <div class="tab-pane fade" id="tab-solicitudes" role="tabpanel">
+                <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+                    <div class="input-group" style="max-width: 340px;">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="search" id="buscarSolicitud" class="form-control" placeholder="Placa, cliente o descripción…" oninput="renderSolicitudes()">
+                    </div>
+                    <select id="filtroSolicitud" class="form-select" style="max-width: 200px;" onchange="renderSolicitudes()">
+                        <option value="PENDIENTE">Pendientes</option>
+                        <option value="">Todas</option>
+                        <option value="ATENDIDA">Atendidas</option>
+                        <option value="RECHAZADA">Rechazadas</option>
+                        <option value="CANCELADA">Canceladas</option>
+                    </select>
+                    <div class="resumen-mini ms-md-auto"><i class="bi bi-info-circle me-1"></i>Citas que los clientes piden desde su portal</div>
+                </div>
+                <div class="table-wrap table-responsive">
+                    <table class="table table-taller">
+                        <thead>
+                            <tr><th>Recibida</th><th>Cliente</th><th>Vehículo</th><th>Fecha preferida</th><th>Tipo</th><th>Lo que necesita</th><th>Estado</th><th class="text-end">Acciones</th></tr>
+                        </thead>
+                        <tbody id="tablaSolicitudes"><tr><td colspan="8" class="empty">Cargando…</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ================= CLIENTES ================= -->
+            <div class="tab-pane fade" id="tab-clientes" role="tabpanel">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <div class="input-group" style="max-width: 380px;">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="search" id="buscarCliente" class="form-control" placeholder="Nombre, cédula, teléfono o correo…" oninput="renderClientes()">
+                    </div>
+                    <button class="btn btn-olive ms-auto" onclick="abrirModalCliente()"><i class="bi bi-person-plus me-1"></i>Nuevo cliente</button>
+                </div>
+                <div class="table-wrap table-responsive">
+                    <table class="table table-taller">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Cédula</th>
+                                <th>Teléfono</th>
+                                <th>Correo</th>
+                                <th>Vehículos</th>
+                                <th th:if="${esAdmin}">Portal</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaClientes"><tr><td colspan="6" class="empty">Cargando…</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ================= INVENTARIO ================= -->
+            <div class="tab-pane fade" id="tab-inventario" role="tabpanel">
+                <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+                    <div class="input-group" style="max-width: 380px;">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="search" id="buscarRepuesto" class="form-control" placeholder="Código o nombre del repuesto…" oninput="renderInventario()">
+                    </div>
+                    <div class="form-check form-switch ms-1">
+                        <input class="form-check-input" type="checkbox" id="soloStockBajo" onchange="renderInventario()">
+                        <label class="form-check-label small" for="soloStockBajo">Solo stock bajo</label>
+                    </div>
+                    <div class="resumen-mini ms-md-2" id="resumenInventario"></div>
+                    <button class="btn btn-olive ms-auto" onclick="abrirModalRepuesto()" th:if="${esAdmin}"><i class="bi bi-plus-lg me-1"></i>Nuevo repuesto</button>
+                </div>
+                <div class="table-wrap table-responsive">
+                    <table class="table table-taller">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Repuesto</th>
+                                <th>Stock</th>
+                                <th class="text-end">Mínimo</th>
+                                <th class="text-end">Precio venta</th>
+                                <th class="text-end">Valor en stock</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaInventario"><tr><td colspan="7" class="empty">Cargando…</td></tr></tbody>
+                    </table>
+                </div>
+                <div class="form-hint mt-2"><i class="bi bi-info-circle me-1"></i>El stock se descuenta automáticamente al registrar el repuesto en una orden de trabajo y se devuelve si se quita la línea o se elimina la orden.</div>
+            </div>
+
+            <!-- ================= RECORDATORIOS ================= -->
+            <div class="tab-pane fade" id="tab-recordatorios" role="tabpanel">
+                <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+                    <div class="input-group" style="max-width: 320px;">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="search" id="buscarRecordatorio" class="form-control" placeholder="Placa o cliente…" oninput="renderRecordatorios()">
+                    </div>
+                    <select id="filtroRecordatorio" class="form-select" style="max-width: 220px;" onchange="renderRecordatorios()">
+                        <option value="URGENTES">Vencidos y próximos</option>
+                        <option value="">Todos</option>
+                        <option value="VENCIDO">Vencidos</option>
+                        <option value="PROXIMO">Próximos</option>
+                        <option value="AL_DIA">Al día</option>
+                        <option value="SIN_HISTORIAL">Sin historial preventivo</option>
+                    </select>
+                    <div class="resumen-mini ms-md-auto" id="reglaRecordatorio"></div>
+                </div>
+                <div class="table-wrap table-responsive">
+                    <table class="table table-taller">
+                        <thead>
+                            <tr>
+                                <th>Vehículo</th>
+                                <th>Cliente</th>
+                                <th>Último preventivo</th>
+                                <th>Próximo servicio</th>
+                                <th>Falta</th>
+                                <th>Estado</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaRecordatorios"><tr><td colspan="7" class="empty">Cargando…</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ================= REPORTES (solo admin) ================= -->
+            <div class="tab-pane fade" id="tab-reportes" role="tabpanel" th:if="${esAdmin}">
+                <div class="d-flex flex-wrap gap-2 mb-4 align-items-end">
+                    <div>
+                        <label for="repDesde" class="form-label">Desde</label>
+                        <input type="date" id="repDesde" class="form-control">
+                    </div>
+                    <div>
+                        <label for="repHasta" class="form-label">Hasta</label>
+                        <input type="date" id="repHasta" class="form-control">
+                    </div>
+                    <button class="btn btn-olive" onclick="generarReporte()"><i class="bi bi-arrow-repeat me-1"></i>Generar</button>
+                    <div class="d-flex gap-1 ms-md-2">
+                        <button class="btn btn-soft btn-sm chip-rango" onclick="rangoReporte('mes')">Este mes</button>
+                        <button class="btn btn-soft btn-sm chip-rango" onclick="rangoReporte('anterior')">Mes anterior</button>
+                        <button class="btn btn-soft btn-sm chip-rango" onclick="rangoReporte('30')">Últimos 30 días</button>
+                        <button class="btn btn-soft btn-sm chip-rango" onclick="rangoReporte('anio')">Este año</button>
+                    </div>
+                    <button class="btn btn-soft ms-auto" onclick="imprimirReporte()" id="btnReportePdf" disabled><i class="bi bi-file-earmark-pdf me-1"></i>Descargar PDF</button>
+                </div>
+                <div id="reporteContenido"><div class="empty"><i class="bi bi-bar-chart-line"></i>Seleccione un periodo y presione Generar.</div></div>
+            </div>
+
+            <!-- ================= AUDITORÍA (solo admin) ================= -->
+            <div class="tab-pane fade" id="tab-auditoria" role="tabpanel" th:if="${esAdmin}">
+                <div class="row g-2 mb-3 align-items-end">
+                    <div class="col-6 col-md-2"><label class="form-label" for="audDesde">Desde</label><input type="date" id="audDesde" class="form-control"></div>
+                    <div class="col-6 col-md-2"><label class="form-label" for="audHasta">Hasta</label><input type="date" id="audHasta" class="form-control"></div>
+                    <div class="col-6 col-md-2"><label class="form-label" for="audUsuario">Usuario</label><input type="text" id="audUsuario" class="form-control" placeholder="Todos"></div>
+                    <div class="col-6 col-md-2"><label class="form-label" for="audAccion">Acción</label>
+                        <select id="audAccion" class="form-select">
+                            <option value="">Todas</option><option>CREAR</option><option>ACTUALIZAR</option><option>ESTADO</option>
+                            <option>ELIMINAR</option><option>STOCK</option><option>APROBAR</option><option>LOGIN</option><option>LOGIN_FALLIDO</option>
+                        </select></div>
+                    <div class="col-6 col-md-2"><label class="form-label" for="audEntidad">Módulo</label>
+                        <select id="audEntidad" class="form-select">
+                            <option value="">Todos</option><option>Cliente</option><option>Vehiculo</option><option>Orden</option>
+                            <option>Repuesto</option><option>Usuario</option><option>Solicitud</option><option>Sesion</option>
+                        </select></div>
+                    <div class="col-6 col-md-2 d-flex gap-2">
+                        <button class="btn btn-olive flex-grow-1" onclick="buscarAuditoria()"><i class="bi bi-search me-1"></i>Buscar</button>
+                        <button class="btn btn-soft" onclick="imprimirAuditoria()" title="Descargar PDF"><i class="bi bi-file-earmark-pdf"></i></button>
+                    </div>
+                    <div class="col-12">
+                        <input type="search" id="audTexto" class="form-control" placeholder="Buscar en la descripción o el identificador (placa, OT-0005, cédula…)" onkeydown="if(event.key==='Enter') buscarAuditoria()">
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="small text-muted-2" id="audResumen"></div>
+                </div>
+                <div class="table-wrap table-responsive">
+                    <table class="table table-taller">
+                        <thead><tr><th>Fecha y hora</th><th>Usuario</th><th>Acción</th><th>Módulo</th><th>Referencia</th><th>Detalle</th></tr></thead>
+                        <tbody id="tablaAuditoria"><tr><td colspan="6" class="empty">Presione Buscar.</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ================= USUARIOS (solo admin) ================= -->
+            <div class="tab-pane fade" id="tab-usuarios" role="tabpanel" th:if="${esAdmin}">
+                <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+                    <div class="text-muted-2 small">Cuentas con acceso al sistema. Los mecánicos aparecen para asignarles órdenes.</div>
+                    <button class="btn btn-olive ms-auto" onclick="abrirModalUsuario()"><i class="bi bi-person-plus me-1"></i>Nuevo usuario</button>
+                </div>
+                <div class="table-wrap table-responsive">
+                    <table class="table table-taller">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Usuario</th>
+                                <th>Rol</th>
+                                <th>Órdenes asignadas</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaUsuarios"><tr><td colspan="5" class="empty">Cargando…</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </section>
+</main>
+
+<footer class="container-xxl px-4 py-3 d-flex justify-content-between">
+    <span>Taller Mecánico · Gestión vehicular</span>
+    <span>Grupo 04 · Proyecto SOA</span>
+</footer>
+
+<!-- =========================================================
+     MODAL: VEHÍCULO (crear / editar)
+     ========================================================= -->
+<div class="modal fade" id="modalAuto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="formAuto" onsubmit="guardarAuto(event)" novalidate>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalAutoTitulo">Recibir vehículo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="autoId">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label for="autoPlaca" class="form-label">Placa *</label>
+                            <input type="text" id="autoPlaca" class="form-control text-uppercase" placeholder="ABC-1234" maxlength="10" required>
+                            <div class="form-hint">Auto: ABC-1234 · Moto: AB123C</div>
+                        </div>
+                        <div class="col-md-7">
+                            <label for="autoCliente" class="form-label">Propietario *</label>
+                            <div class="input-group">
+                                <select id="autoCliente" class="form-select" required></select>
+                                <button class="btn btn-soft" type="button" onclick="abrirModalCliente(null, true)" title="Registrar cliente nuevo" id="btnClienteRapido">
+                                    <i class="bi bi-person-plus"></i>
+                                </button>
+                            </div>
+                            <div class="form-hint" id="autoClienteHint"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="autoMarca" class="form-label">Marca *</label>
+                            <input type="text" id="autoMarca" class="form-control" placeholder="Toyota, Chevrolet…" maxlength="30" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="autoModelo" class="form-label">Modelo *</label>
+                            <input type="text" id="autoModelo" class="form-control" placeholder="Hilux, Aveo…" maxlength="30" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="autoAnio" class="form-label">Año</label>
+                            <input type="number" id="autoAnio" class="form-control" placeholder="2021" min="1950" max="2030">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="autoColor" class="form-label">Color</label>
+                            <input type="text" id="autoColor" class="form-control" placeholder="Plateado" maxlength="20">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="autoKm" class="form-label">Kilometraje</label>
+                            <div class="input-group">
+                                <input type="number" id="autoKm" class="form-control" placeholder="45000" min="0">
+                                <span class="input-group-text">km</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="autoEstado" class="form-label">Estado en taller</label>
+                            <select id="autoEstado" class="form-select">
+                                <option value="Ingresado">Ingresado</option>
+                                <option value="En Diagnóstico">En Diagnóstico</option>
+                                <option value="En Reparación">En Reparación</option>
+                                <option value="Listo">Listo</option>
+                                <option value="Entregado">Entregado</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-olive"><i class="bi bi-check-lg me-1"></i>Guardar vehículo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================
+     MODAL: ESTADO / KILOMETRAJE
+     ========================================================= -->
+<div class="modal fade" id="modalEstado" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form onsubmit="guardarEstadoAuto(event)">
+                <div class="modal-header">
+                    <h5 class="modal-title">Estado y kilometraje</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="estadoAutoId">
+                    <div class="vehiculo-box mb-3" id="estadoAutoDetalle"></div>
+                    <div class="mb-3">
+                        <label for="estadoNuevo" class="form-label">Estado en taller</label>
+                        <select id="estadoNuevo" class="form-select" required>
+                            <option value="Ingresado">Ingresado</option>
+                            <option value="En Diagnóstico">En Diagnóstico</option>
+                            <option value="En Reparación">En Reparación</option>
+                            <option value="Listo">Listo</option>
+                            <option value="Entregado">Entregado</option>
+                        </select>
+                        <div class="form-hint mt-1"><i class="bi bi-info-circle me-1"></i>Las órdenes de trabajo también actualizan este estado automáticamente.</div>
+                    </div>
+                    <div>
+                        <label for="estadoKm" class="form-label">Kilometraje actual</label>
+                        <div class="input-group">
+                            <input type="number" id="estadoKm" class="form-control" min="0" placeholder="Dejar vacío si no cambia">
+                            <span class="input-group-text">km</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-olive"><i class="bi bi-check-lg me-1"></i>Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================
+     MODAL: HISTORIAL DEL VEHÍCULO
+     ========================================================= -->
+<div class="modal fade" id="modalHistorial" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Historial del vehículo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+                    <div class="vehiculo-box flex-grow-1" id="historialDetalle"></div>
+                    <button class="btn btn-olive" id="btnHistorialNuevaOrden"><i class="bi bi-clipboard-plus me-1"></i>Nueva orden</button>
+                </div>
+                <div id="historialUltimo" class="mb-3"></div>
+                <div class="row g-2 mb-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label" for="histTexto">Buscar</label>
+                        <input type="search" id="histTexto" class="form-control" placeholder="Diagnóstico, trabajo, repuesto…" oninput="renderHistorial()">
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label" for="histTipo">Tipo</label>
+                        <select id="histTipo" class="form-select" onchange="renderHistorial()"><option value="">Todos</option><option>Preventivo</option><option>Correctivo</option></select>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label" for="histEstado">Estado</label>
+                        <select id="histEstado" class="form-select" onchange="renderHistorial()"><option value="">Todos</option><option>Pendiente</option><option>En Proceso</option><option>Finalizado</option></select>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label" for="histDesde">Desde</label>
+                        <input type="date" id="histDesde" class="form-control" onchange="renderHistorial()">
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label" for="histHasta">Hasta</label>
+                        <input type="date" id="histHasta" class="form-control" onchange="renderHistorial()">
+                    </div>
+                    <div class="col-md-1 d-grid">
+                        <button class="btn btn-soft" onclick="limpiarFiltrosHistorial()" title="Limpiar filtros"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                </div>
+                <div class="table-wrap table-responsive">
+                    <table class="table table-taller">
+                        <thead>
+                            <tr><th>Orden</th><th>Fecha / km</th><th>Tipo</th><th>Diagnóstico</th><th>Trabajos</th><th>Mecánico</th><th class="text-end">Total</th><th>Estado</th></tr>
+                        </thead>
+                        <tbody id="tablaHistorial"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================
+     MODAL: ORDEN DE TRABAJO (crear / editar / ver)
+     ========================================================= -->
+<div class="modal fade" id="modalOrden" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <form id="formOrden" onsubmit="guardarOrden(event)" novalidate>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalOrdenTitulo">Nueva orden de trabajo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="ordenId">
+                    <input type="hidden" id="ordenSolicitudId">
+                    <div id="ordenAvisos"></div>
+                    <fieldset id="ordenFieldset">
+                        <div class="section-title">Datos generales</div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-5">
+                                <label for="ordenAuto" class="form-label">Vehículo *</label>
+                                <select id="ordenAuto" class="form-select" required></select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="ordenFecha" class="form-label">Fecha de ingreso</label>
+                                <input type="date" id="ordenFecha" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="ordenMecanico" class="form-label">Mecánico responsable</label>
+                                <select id="ordenMecanico" class="form-select"></select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="ordenTipo" class="form-label">Tipo *</label>
+                                <select id="ordenTipo" class="form-select" required>
+                                    <option value="Preventivo">Preventivo</option>
+                                    <option value="Correctivo">Correctivo</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="ordenEstado" class="form-label">Estado *</label>
+                                <select id="ordenEstado" class="form-select" required>
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="En Proceso">En Proceso</option>
+                                    <option value="Finalizado">Finalizado</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="ordenKm" class="form-label">Kilometraje al ingreso</label>
+                                <div class="input-group">
+                                    <input type="number" id="ordenKm" class="form-control" min="0" placeholder="Ej. 58000">
+                                    <span class="input-group-text">km</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <div class="form-hint"><i class="bi bi-arrow-repeat me-1"></i>Al guardar, el vehículo pasa a <b id="ordenEstadoAutoPreview">Ingresado</b>.</div>
+                            </div>
+                        </div>
+
+                        <div class="section-title">Diagnóstico y trabajos</div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="ordenDiagnostico" class="form-label">Diagnóstico / solicitud del cliente</label>
+                                <textarea id="ordenDiagnostico" class="form-control" rows="3" maxlength="200" placeholder="Ej. Ruido al frenar en la rueda delantera izquierda"></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="ordenTrabajos" class="form-label">Trabajos realizados</label>
+                                <textarea id="ordenTrabajos" class="form-control" rows="3" maxlength="200" placeholder="Ej. Cambio de pastillas y rectificación de discos"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-2 gap-2">
+                            <div class="section-title mb-0">Repuestos y mano de obra</div>
+                            <div class="d-flex gap-2" id="botonesDetalle">
+                                <button type="button" class="btn btn-soft btn-sm" onclick="agregarLinea('REPUESTO')"><i class="bi bi-box-seam me-1"></i>Repuesto</button>
+                                <button type="button" class="btn btn-soft btn-sm" onclick="agregarLinea('MANO_OBRA')"><i class="bi bi-person-workspace me-1"></i>Mano de obra</button>
+                            </div>
+                        </div>
+                        <div class="table-wrap mb-3">
+                            <table class="table detalle-table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width:130px">Tipo</th>
+                                        <th>Descripción / repuesto del inventario</th>
+                                        <th style="width:100px" class="text-end">Cant.</th>
+                                        <th style="width:130px" class="text-end">P. unitario</th>
+                                        <th style="width:110px" class="text-end">Subtotal</th>
+                                        <th style="width:44px"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaDetalle"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="row g-3 justify-content-end">
+                            <div class="col-md-5">
+                                <div class="totales">
+                                    <div class="d-flex justify-content-between small text-muted-2"><span>Repuestos</span><span id="totRepuestos">$0.00</span></div>
+                                    <div class="d-flex justify-content-between small text-muted-2 mb-2"><span>Mano de obra</span><span id="totManoObra">$0.00</span></div>
+                                    <div id="costoManualBox" class="mb-2">
+                                        <label for="ordenCostoManual" class="form-label">Costo total (sin detalle)</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" id="ordenCostoManual" class="form-control" step="0.01" min="0" placeholder="0.00" oninput="recalcularTotales()">
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-baseline border-top pt-2">
+                                        <span class="fw-semibold">Total</span><span class="total" id="totGeneral">$0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft d-none" id="btnImprimirOrden"><i class="bi bi-printer me-1"></i>Imprimir / PDF</button>
+                    <span class="me-auto form-hint" id="ordenAvisoSoloLectura"></span>
+                    <button type="button" class="btn btn-soft" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-olive" id="btnGuardarOrden"><i class="bi bi-check-lg me-1"></i>Guardar orden</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================
+     MODAL: CLIENTE
+     ========================================================= -->
+<div class="modal fade" id="modalCliente" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="formCliente" onsubmit="guardarCliente(event)" novalidate>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalClienteTitulo">Nuevo cliente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="clienteModo">
+                    <div class="mb-3">
+                        <label for="clienteCedula" class="form-label">Cédula *</label>
+                        <input type="text" id="clienteCedula" class="form-control" inputmode="numeric" placeholder="1801234566" maxlength="10" required>
+                        <div class="form-hint">10 dígitos, se valida el dígito verificador.</div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label for="clienteNombre" class="form-label">Nombres *</label>
+                            <input type="text" id="clienteNombre" class="form-control" maxlength="50" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="clienteApellido" class="form-label">Apellidos *</label>
+                            <input type="text" id="clienteApellido" class="form-control" maxlength="50" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="clienteTelefono" class="form-label">Teléfono</label>
+                        <input type="tel" id="clienteTelefono" class="form-control" inputmode="numeric" placeholder="0991234567" maxlength="10">
+                    </div>
+                    <div>
+                        <label for="clienteCorreo" class="form-label">Correo</label>
+                        <input type="email" id="clienteCorreo" class="form-control" placeholder="cliente@correo.com" maxlength="50">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-olive"><i class="bi bi-check-lg me-1"></i>Guardar cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================
+     MODAL: USUARIO (solo admin)
+     ========================================================= -->
+<div class="modal fade" id="modalUsuario" tabindex="-1" aria-hidden="true" th:if="${esAdmin}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="formUsuario" onsubmit="guardarUsuario(event)" novalidate>
+                <div class="modal-header">
+                    <h5 class="modal-title">Nuevo usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="usuarioNombre" class="form-label">Nombre completo *</label>
+                        <input type="text" id="usuarioNombre" class="form-control" maxlength="80" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="usuarioUsername" class="form-label">Usuario *</label>
+                        <input type="text" id="usuarioUsername" class="form-control" maxlength="30" placeholder="jperez" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="usuarioPassword" class="form-label">Contraseña *</label>
+                        <input type="password" id="usuarioPassword" class="form-control" minlength="6" required>
+                        <div class="form-hint">Mínimo 6 caracteres.</div>
+                    </div>
+                    <div>
+                        <label for="usuarioRol" class="form-label">Rol *</label>
+                        <select id="usuarioRol" class="form-select">
+                            <option value="ROLE_MECANICO">Mecánico</option>
+                            <option value="ROLE_ADMIN">Administrador</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-olive"><i class="bi bi-check-lg me-1"></i>Crear usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================
+     MODAL: REPUESTO (solo admin)
+     ========================================================= -->
+<div class="modal fade" id="modalRepuesto" tabindex="-1" aria-hidden="true" th:if="${esAdmin}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="formRepuesto" onsubmit="guardarRepuesto(event)" novalidate>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalRepuestoTitulo">Nuevo repuesto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="repuestoId">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label for="repuestoCodigo" class="form-label">Código *</label>
+                            <input type="text" id="repuestoCodigo" class="form-control text-uppercase" maxlength="20" placeholder="FIL-ACE01" required>
+                        </div>
+                        <div class="col-md-7">
+                            <label for="repuestoUnidad" class="form-label">Unidad *</label>
+                            <input type="text" id="repuestoUnidad" class="form-control" list="listaUnidades" maxlength="15" placeholder="unidad" required>
+                            <datalist id="listaUnidades">
+                                <option value="unidad"><option value="litro"><option value="galón"><option value="juego"><option value="kit"><option value="metro">
+                            </datalist>
+                        </div>
+                        <div class="col-12">
+                            <label for="repuestoNombre" class="form-label">Nombre *</label>
+                            <input type="text" id="repuestoNombre" class="form-control" maxlength="100" placeholder="Filtro de aceite" required>
+                        </div>
+                        <div class="col-md-4" id="repuestoStockBox">
+                            <label for="repuestoStock" class="form-label">Stock inicial</label>
+                            <input type="number" id="repuestoStock" class="form-control" min="0" step="0.01" value="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="repuestoMinimo" class="form-label">Stock mínimo *</label>
+                            <input type="number" id="repuestoMinimo" class="form-control" min="0" step="0.01" value="1" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="repuestoPrecio" class="form-label">Precio venta *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" id="repuestoPrecio" class="form-control" min="0" step="0.01" placeholder="0.00" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-hint mt-2" id="repuestoStockHint"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-olive"><i class="bi bi-check-lg me-1"></i>Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================
+     MODAL: ENTRADA / AJUSTE DE STOCK (solo admin)
+     ========================================================= -->
+<div class="modal fade" id="modalStock" tabindex="-1" aria-hidden="true" th:if="${esAdmin}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form onsubmit="guardarAjusteStock(event)">
+                <div class="modal-header">
+                    <h5 class="modal-title">Movimiento de stock</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="stockRepuestoId">
+                    <div class="vehiculo-box mb-3" id="stockRepuestoDetalle"></div>
+                    <div class="btn-group w-100 mb-3" role="group">
+                        <input type="radio" class="btn-check" name="tipoMov" id="movEntrada" value="1" checked>
+                        <label class="btn btn-soft" for="movEntrada"><i class="bi bi-box-arrow-in-down me-1"></i>Entrada (compra)</label>
+                        <input type="radio" class="btn-check" name="tipoMov" id="movSalida" value="-1">
+                        <label class="btn btn-soft" for="movSalida"><i class="bi bi-box-arrow-up me-1"></i>Ajuste (salida)</label>
+                    </div>
+                    <label for="stockCantidad" class="form-label">Cantidad *</label>
+                    <input type="number" id="stockCantidad" class="form-control" min="0.01" step="0.01" required>
+                    <div class="form-hint mt-1">Use "Ajuste" para pérdidas, daños o corrección de conteo.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-olive"><i class="bi bi-check-lg me-1"></i>Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================
+     MODAL: RECHAZAR SOLICITUD
+     ========================================================= -->
+<div class="modal fade" id="modalRechazo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form onsubmit="confirmarRechazo(event)">
+                <div class="modal-header">
+                    <h5 class="modal-title">Rechazar solicitud</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="rechazoId">
+                    <div class="vehiculo-box mb-3 small" id="rechazoDetalle"></div>
+                    <label for="rechazoMotivo" class="form-label">Mensaje para el cliente *</label>
+                    <textarea id="rechazoMotivo" class="form-control" rows="3" maxlength="200" required
+                              placeholder="Ej. Ese día no tenemos turnos; le proponemos el jueves en la mañana."></textarea>
+                    <div class="form-hint mt-1">El cliente verá este mensaje en su portal.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger-soft">Rechazar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================
+     MODAL: ACCESO DEL CLIENTE CREADO (solo admin)
+     ========================================================= -->
+<div class="modal fade" id="modalAcceso" tabindex="-1" aria-hidden="true" th:if="${esAdmin}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Acceso al portal creado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="mb-3" id="accesoCliente"></p>
+                <div class="row g-2 mb-3">
+                    <div class="col-6"><div class="form-label">Usuario</div><div class="credencial" id="accesoUsuario"></div></div>
+                    <div class="col-6"><div class="form-label">Contraseña temporal</div><div class="credencial" id="accesoPassword"></div></div>
+                </div>
+                <div class="form-hint"><i class="bi bi-exclamation-triangle me-1"></i>Esta contraseña solo se muestra una vez. Entréguela al cliente; podrá cambiarla en "Mi perfil".</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-soft" onclick="copiarAcceso()"><i class="bi bi-clipboard me-1"></i>Copiar</button>
+                <a class="btn btn-soft d-none" id="accesoWhatsapp" target="_blank" rel="noopener"><i class="bi bi-whatsapp me-1"></i>Enviar por WhatsApp</a>
+                <button type="button" class="btn btn-olive" data-bs-dismiss="modal">Listo</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================
+     MODAL: CONFIRMACIÓN (reemplaza al confirm() del navegador)
+     ========================================================= -->
+<div class="modal fade" id="modalConfirmar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-body p-4 text-center">
+                <div class="mb-3" style="font-size:2rem; color: var(--danger);"><i class="bi bi-exclamation-octagon"></i></div>
+                <h6 class="fw-bold mb-2" id="confirmarTitulo">¿Confirmar?</h6>
+                <p class="small text-muted-2 mb-0" id="confirmarMensaje"></p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-soft" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger-soft" id="confirmarBoton">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="toast" class="toast align-items-center" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body d-flex align-items-center gap-2" id="toastMensaje"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Datos de la sesión inyectados por Thymeleaf -->
+<script th:inline="javascript">
+    const ES_ADMIN = /*[[${esAdmin}]]*/ false;
+    const USERNAME = /*[[${username}]]*/ 'usuario';
+    const NOMBRE_USUARIO = /*[[${nombreUsuario}]]*/ 'Usuario';
+    const TALLER = {
+        nombre: /*[[${tallerNombre}]]*/ 'Taller Mecánico',
+        ruc: /*[[${tallerRuc}]]*/ '',
+        direccion: /*[[${tallerDireccion}]]*/ '',
+        telefono: /*[[${tallerTelefono}]]*/ ''
+    };
+</script>
+
+<script>
+/* =====================================================================
+   ESTADO GLOBAL
+   ===================================================================== */
+let autos = [];
+let ordenes = [];
+let clientes = [];
+let mecanicos = [];
+let usuarios = [];
+let repuestos = [];
+let recordatorios = { items: [] };
+let ultimoReporte = null;
+let solicitudes = [];
+
+const ESTADOS_ACTIVOS = ['Ingresado', 'En Diagnóstico', 'En Reparación'];
+const ORDEN_A_AUTO = { 'Pendiente': 'Ingresado', 'En Proceso': 'En Reparación', 'Finalizado': 'Listo' };
+
+const modal = {};
+
+/* =====================================================================
+   UTILIDADES
+   ===================================================================== */
+
+/** Escapa texto antes de insertarlo con innerHTML (evita XSS). */
+function esc(valor) {
+    if (valor === null || valor === undefined) return '';
+    return String(valor)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+const fmtDinero = new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD' });
+function dinero(v) { return fmtDinero.format(Number(v || 0)); }
+
+/** Cantidades: 2 -> "2", 1.5 -> "1,5" */
+function cant(v) { return Number(v || 0).toLocaleString('es-EC', { maximumFractionDigits: 2 }); }
+
+function km(v) { return v == null ? '—' : Number(v).toLocaleString('es-EC') + ' km'; }
+
+/** 2026-11-01 -> 01/11/2026 */
+function fecha(iso) {
+    if (!iso) return '—';
+    const p = String(iso).split('-');
+    return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
+}
+
+function hoyISO() {
+    const d = new Date();
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+
+function codigoOrden(id) { return 'OT-' + String(id).padStart(4, '0'); }
+
+function normalizar(t) {
+    return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+function nombreCliente(c) { return c ? `${c.nombre} ${c.apellido}` : 'Sin propietario'; }
+
+function nombreMecanico(u) { return u ? (u.nombreCompleto || u.username) : null; }
+
+function badgeEstadoAuto(estado) {
+    const clases = {
+        'Ingresado': 'e-ingresado', 'En Diagnóstico': 'e-diagnostico', 'En Reparación': 'e-reparacion',
+        'Listo': 'e-listo', 'Entregado': 'e-entregado'
+    };
+    return `<span class="estado ${clases[estado] || 'e-ingresado'}">${esc(estado || 'Sin estado')}</span>`;
+}
+
+function badgeEstadoOrden(estado) {
+    const clases = { 'Pendiente': 'e-pendiente', 'En Proceso': 'e-proceso', 'Finalizado': 'e-finalizado' };
+    return `<span class="estado ${clases[estado] || 'e-pendiente'}">${esc(estado || 'Sin estado')}</span>`;
+}
+
+function badgeTipo(tipo) {
+    const cls = tipo === 'Correctivo' ? 't-correctivo' : 't-preventivo';
+    return `<span class="tipo ${cls}">${esc(tipo || '—')}</span>`;
+}
+
+function filaVacia(colspan, icono, texto) {
+    return `<tr><td colspan="${colspan}" class="empty"><i class="bi ${icono}"></i>${esc(texto)}</td></tr>`;
+}
+
+/* ---------- Toast ---------- */
+let toastInstance;
+function toast(mensaje, tipo = 'ok') {
+    const el = document.getElementById('toast');
+    el.className = 'toast align-items-center ' + (tipo === 'ok' ? 'ok' : 'error');
+    const icono = tipo === 'ok' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill';
+    document.getElementById('toastMensaje').innerHTML = `<i class="bi ${icono}"></i><span>${esc(mensaje)}</span>`;
+    toastInstance.show();
+}
+
+/* ---------- Confirmación ---------- */
+function confirmar(titulo, mensaje, textoBoton = 'Eliminar') {
+    return new Promise(resolve => {
+        document.getElementById('confirmarTitulo').textContent = titulo;
+        document.getElementById('confirmarMensaje').textContent = mensaje;
+        const boton = document.getElementById('confirmarBoton');
+        boton.textContent = textoBoton;
+        const el = document.getElementById('modalConfirmar');
+        let aceptado = false;
+        boton.onclick = () => { aceptado = true; modal.confirmar.hide(); };
+        el.addEventListener('hidden.bs.modal', () => resolve(aceptado), { once: true });
+        modal.confirmar.show();
+    });
+}
+
+/* ---------- Cliente HTTP (incluye token CSRF y manejo de errores) ---------- */
+const CSRF_TOKEN = document.querySelector('meta[name="_csrf"]')?.content;
+const CSRF_HEADER = document.querySelector('meta[name="_csrf_header"]')?.content;
+
+async function api(url, opciones = {}) {
+    const metodo = (opciones.method || 'GET').toUpperCase();
+    const headers = { 'Accept': 'application/json', ...(opciones.headers || {}) };
+    if (opciones.body !== undefined) headers['Content-Type'] = 'application/json';
+    if (metodo !== 'GET' && CSRF_TOKEN && CSRF_HEADER) headers[CSRF_HEADER] = CSRF_TOKEN;
+
+    const res = await fetch(url, {
+        ...opciones,
+        method: metodo,
+        headers,
+        body: opciones.body !== undefined ? JSON.stringify(opciones.body) : undefined
+    });
+
+    if (res.status === 401) {
+        window.location.href = '/login?expirada';
+        throw new Error('Sesión expirada');
+    }
+
+    const texto = await res.text();
+    let datos = null;
+    try { datos = texto ? JSON.parse(texto) : null; } catch { datos = texto; }
+
+    if (!res.ok) {
+        const mensaje = (datos && datos.mensaje) || (typeof datos === 'string' && datos) ||
+            (res.status === 403 ? 'No tiene permisos para realizar esta acción' : 'Ocurrió un error inesperado');
+        const error = new Error(mensaje);
+        error.errores = datos && datos.errores;
+        throw error;
+    }
+    return datos;
+}
+
+/** Marca en rojo los campos que el backend reporta como inválidos. */
+function marcarErrores(mapaCampos, errores) {
+    Object.values(mapaCampos).forEach(id => document.getElementById(id)?.classList.remove('is-invalid'));
+    if (!errores) return;
+    Object.entries(errores).forEach(([campo]) => {
+        const id = mapaCampos[campo];
+        if (id) document.getElementById(id)?.classList.add('is-invalid');
+    });
+}
+
+/* =====================================================================
+   CARGA DE DATOS
+   ===================================================================== */
+async function cargarTodo() {
+    try {
+        const peticiones = [api('/api/autos'), api('/api/mantenimientos'), api('/api/clientes'), api('/api/mecanicos'),
+                            api('/api/repuestos'), api('/api/recordatorios'), api('/api/solicitudes')];
+        if (ES_ADMIN) peticiones.push(api('/api/usuarios'));
+        const r = await Promise.all(peticiones);
+        autos = r[0]; ordenes = r[1]; clientes = r[2]; mecanicos = r[3]; repuestos = r[4]; recordatorios = r[5]; solicitudes = r[6];
+        if (ES_ADMIN) usuarios = r[7];
+        renderTodo();
+    } catch (e) {
+        toast(e.message, 'error');
+    }
+}
+
+function renderTodo() {
+    renderAutos();
+    renderOrdenes();
+    renderClientes();
+    renderInventario();
+    renderRecordatorios();
+    renderSolicitudes();
+    if (ES_ADMIN) renderUsuarios();
+    actualizarKPIs();
+    renderAlertas();
+}
+
+/* =====================================================================
+   KPIs
+   ===================================================================== */
+function actualizarKPIs() {
+    const enTaller = autos.filter(a => ESTADOS_ACTIVOS.includes(a.estadoTaller)).length;
+    const listos = autos.filter(a => a.estadoTaller === 'Listo').length;
+    const pendientes = ordenes.filter(o => o.estado === 'Pendiente').length;
+    const enProceso = ordenes.filter(o => o.estado === 'En Proceso').length;
+
+    const mesActual = hoyISO().slice(0, 7);
+    const finalizadasMes = ordenes.filter(o => o.estado === 'Finalizado' &&
+        String(o.fechaFinalizacion || o.fechaIngreso || '').startsWith(mesActual));
+    const ingresos = finalizadasMes.reduce((s, o) => s + Number(o.costo || 0), 0);
+
+    document.getElementById('kpiEnTaller').textContent = enTaller;
+    document.getElementById('kpiListos').textContent = listos;
+    document.getElementById('kpiAbiertas').textContent = pendientes + enProceso;
+    document.getElementById('kpiAbiertasDetalle').textContent = `${pendientes} ${pendientes === 1 ? 'pendiente' : 'pendientes'} · ${enProceso} en proceso`;
+    document.getElementById('kpiIngresos').textContent = dinero(ingresos);
+    document.getElementById('kpiIngresosDetalle').textContent =
+        `${finalizadasMes.length} ${finalizadasMes.length === 1 ? 'orden finalizada' : 'órdenes finalizadas'}`;
+
+    document.getElementById('countAutos').textContent = autos.length;
+    document.getElementById('countOrdenes').textContent = ordenes.length;
+    document.getElementById('countClientes').textContent = clientes.length;
+}
+
+function mostrarTab(id) {
+    bootstrap.Tab.getOrCreateInstance(document.getElementById(id)).show();
+}
+
+function irAAutos(estado) {
+    document.getElementById('buscarAuto').value = '';
+    document.getElementById('filtroEstadoAuto').value = estado;
+    renderAutos();
+    mostrarTab('tab-autos-btn');
+}
+
+function irAOrdenes(estado) {
+    document.getElementById('buscarOrden').value = '';
+    document.getElementById('filtroEstadoOrden').value = estado;
+    renderOrdenes();
+    mostrarTab('tab-ordenes-btn');
+}
+
+/* =====================================================================
+   VEHÍCULOS
+   ===================================================================== */
+function renderAutos() {
+    const q = normalizar(document.getElementById('buscarAuto').value);
+    const estado = document.getElementById('filtroEstadoAuto').value;
+
+    const lista = autos.filter(a => {
+        if (estado === 'EN_TALLER' && !ESTADOS_ACTIVOS.includes(a.estadoTaller)) return false;
+        if (estado && estado !== 'EN_TALLER' && a.estadoTaller !== estado) return false;
+        if (!q) return true;
+        const texto = normalizar([a.placa, a.marca, a.modelo, a.color, nombreCliente(a.cliente), a.cliente?.cedula].join(' '));
+        return texto.includes(q);
+    }).sort((a, b) => (a.placa || '').localeCompare(b.placa || ''));
+
+    const tbody = document.getElementById('tablaAutos');
+    if (lista.length === 0) {
+        tbody.innerHTML = filaVacia(7, 'bi-car-front', autos.length ? 'Ningún vehículo coincide con la búsqueda.' : 'Aún no hay vehículos registrados.');
+        return;
+    }
+
+    tbody.innerHTML = lista.map(a => `
+        <tr>
+            <td><span class="placa">${esc(a.placa)}</span></td>
+            <td><div class="fw-semibold">${esc(a.marca)} ${esc(a.modelo)}</div><div class="small text-muted-2">${a.anio ? esc(a.anio) : 'Año no registrado'}</div></td>
+            <td>${esc(a.color) || '<span class="text-muted-2">—</span>'}</td>
+            <td class="text-end">${km(a.kilometraje)}</td>
+            <td>
+                <div>${esc(nombreCliente(a.cliente))}</div>
+                <div class="small text-muted-2">${esc(a.cliente?.cedula)}</div>
+            </td>
+            <td>${badgeEstadoAuto(a.estadoTaller)}</td>
+            <td class="text-end text-nowrap">
+                <button class="btn-icon" title="Estado y kilometraje" aria-label="Estado y kilometraje" onclick="abrirModalEstado(${a.idAuto})"><i class="bi bi-speedometer2"></i></button>
+                <button class="btn-icon" title="Historial y órdenes" aria-label="Historial" onclick="abrirHistorial(${a.idAuto})"><i class="bi bi-clock-history"></i></button>
+                <button class="btn-icon" title="Editar ficha" aria-label="Editar" onclick="abrirModalAuto(${a.idAuto})"><i class="bi bi-pencil"></i></button>
+                ${ES_ADMIN ? `<button class="btn-icon danger" title="Eliminar" aria-label="Eliminar" onclick="eliminarAuto(${a.idAuto})"><i class="bi bi-trash3"></i></button>` : ''}
+            </td>
+        </tr>`).join('');
+}
+
+function limpiarFiltrosAutos() {
+    document.getElementById('buscarAuto').value = '';
+    document.getElementById('filtroEstadoAuto').value = '';
+    renderAutos();
+}
+
+function poblarSelectClientes(seleccionado) {
+    const sel = document.getElementById('autoCliente');
+    const ordenados = [...clientes].sort((a, b) => nombreCliente(a).localeCompare(nombreCliente(b)));
+    sel.innerHTML = '<option value="">Seleccione el propietario…</option>' +
+        ordenados.map(c => `<option value="${esc(c.cedula)}">${esc(nombreCliente(c))} · ${esc(c.cedula)}</option>`).join('');
+    if (seleccionado) sel.value = seleccionado;
+}
+
+function abrirModalAuto(idAuto) {
+    const form = document.getElementById('formAuto');
+    form.reset();
+    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    const auto = idAuto ? autos.find(a => a.idAuto === idAuto) : null;
+
+    poblarSelectClientes(auto?.cliente?.cedula);
+    document.getElementById('autoId').value = auto ? auto.idAuto : '';
+    document.getElementById('modalAutoTitulo').textContent = auto ? `Editar vehículo ${auto.placa}` : 'Recibir vehículo';
+
+    // El mecánico no puede cambiar placa ni propietario de un vehículo existente
+    const bloquear = !!auto && !ES_ADMIN;
+    document.getElementById('autoPlaca').readOnly = bloquear;
+    document.getElementById('autoCliente').disabled = bloquear;
+    document.getElementById('btnClienteRapido').disabled = bloquear;
+    document.getElementById('autoClienteHint').textContent = bloquear ? 'Solo el administrador puede cambiar la placa o el propietario.' : '';
+
+    if (auto) {
+        document.getElementById('autoPlaca').value = auto.placa;
+        document.getElementById('autoMarca').value = auto.marca || '';
+        document.getElementById('autoModelo').value = auto.modelo || '';
+        document.getElementById('autoAnio').value = auto.anio ?? '';
+        document.getElementById('autoColor').value = auto.color || '';
+        document.getElementById('autoKm').value = auto.kilometraje ?? '';
+        document.getElementById('autoEstado').value = auto.estadoTaller || 'Ingresado';
+    } else {
+        document.getElementById('autoEstado').value = 'Ingresado';
+    }
+    modal.auto.show();
+}
+
+async function guardarAuto(e) {
+    e.preventDefault();
+    const id = document.getElementById('autoId').value;
+    const valorNum = idCampo => {
+        const v = document.getElementById(idCampo).value;
+        return v === '' ? null : Number(v);
+    };
+    const datos = {
+        placa: document.getElementById('autoPlaca').value.trim().toUpperCase(),
+        clienteCedula: document.getElementById('autoCliente').value,
+        marca: document.getElementById('autoMarca').value.trim(),
+        modelo: document.getElementById('autoModelo').value.trim(),
+        anio: valorNum('autoAnio'),
+        color: document.getElementById('autoColor').value.trim(),
+        kilometraje: valorNum('autoKm'),
+        estadoTaller: document.getElementById('autoEstado').value
+    };
+    const campos = { placa: 'autoPlaca', clienteCedula: 'autoCliente', marca: 'autoMarca', modelo: 'autoModelo',
+                     anio: 'autoAnio', color: 'autoColor', kilometraje: 'autoKm' };
+    try {
+        await api(id ? `/api/autos/${id}` : '/api/autos', { method: id ? 'PUT' : 'POST', body: datos });
+        modal.auto.hide();
+        toast(id ? 'Vehículo actualizado' : `Vehículo ${datos.placa} registrado`);
+        await cargarTodo();
+    } catch (err) {
+        marcarErrores(campos, err.errores);
+        toast(err.message, 'error');
+    }
+}
+
+function abrirModalEstado(idAuto) {
+    const a = autos.find(x => x.idAuto === idAuto);
+    if (!a) return;
+    document.getElementById('estadoAutoId').value = a.idAuto;
+    document.getElementById('estadoAutoDetalle').innerHTML =
+        `<span class="placa me-2">${esc(a.placa)}</span><b>${esc(a.marca)} ${esc(a.modelo)}</b>
+         <div class="small text-muted-2 mt-1">Actual: ${esc(a.estadoTaller)} · ${km(a.kilometraje)}</div>`;
+    document.getElementById('estadoNuevo').value = a.estadoTaller || 'Ingresado';
+    document.getElementById('estadoKm').value = '';
+    document.getElementById('estadoKm').min = a.kilometraje || 0;
+    modal.estado.show();
+}
+
+async function guardarEstadoAuto(e) {
+    e.preventDefault();
+    const id = document.getElementById('estadoAutoId').value;
+    const params = new URLSearchParams({ estado: document.getElementById('estadoNuevo').value });
+    const kmNuevo = document.getElementById('estadoKm').value;
+    if (kmNuevo !== '') params.append('kilometraje', kmNuevo);
+    try {
+        await api(`/api/autos/${id}/estado?${params}`, { method: 'PATCH' });
+        modal.estado.hide();
+        toast('Estado actualizado');
+        await cargarTodo();
+    } catch (err) {
+        toast(err.message, 'error');
+    }
+}
+
+async function eliminarAuto(idAuto) {
+    const a = autos.find(x => x.idAuto === idAuto);
+    const n = ordenes.filter(o => o.auto?.idAuto === idAuto).length;
+    const ok = await confirmar(`¿Eliminar el vehículo ${a?.placa}?`,
+        n ? `También se eliminarán sus ${n} órdenes de trabajo. Esta acción no se puede deshacer.` : 'Esta acción no se puede deshacer.');
+    if (!ok) return;
+    try {
+        await api(`/api/autos/${idAuto}`, { method: 'DELETE' });
+        toast('Vehículo eliminado');
+        await cargarTodo();
+    } catch (err) {
+        toast(err.message, 'error');
+    }
+}
+
+let historialAutoId = null;
+
+function abrirHistorial(idAuto) {
+    const a = autos.find(x => x.idAuto === idAuto);
+    if (!a) return;
+    historialAutoId = idAuto;
+    ['histTexto', 'histTipo', 'histEstado', 'histDesde', 'histHasta'].forEach(id => document.getElementById(id).value = '');
+
+    const lista = ordenesOrdenadas(ordenes.filter(o => o.auto?.idAuto === idAuto));
+    const total = lista.filter(o => o.estado === 'Finalizado').reduce((s, o) => s + Number(o.costo || 0), 0);
+    document.getElementById('historialDetalle').innerHTML = `
+        <div class="d-flex flex-wrap align-items-center gap-3">
+            <span class="placa">${esc(a.placa)}</span>
+            <div><b>${esc(a.marca)} ${esc(a.modelo)}</b> ${a.anio ? '(' + esc(a.anio) + ')' : ''}
+                <div class="small text-muted-2">${esc(nombreCliente(a.cliente))} · ${km(a.kilometraje)}</div></div>
+            <div class="ms-auto text-end small">
+                <div class="text-muted-2">${lista.length} ${lista.length === 1 ? 'orden' : 'órdenes'}</div>
+                <div class="fw-bold">${dinero(total)} facturado</div>
+            </div>
+        </div>`;
+
+    // Último chequeo / mantenimiento siempre visible arriba
+    const u = lista[0];
+    document.getElementById('historialUltimo').innerHTML = u ? `
+        <div class="ultimo-box d-flex flex-wrap align-items-center gap-3" style="cursor:pointer" onclick="modal.historial.hide(); abrirModalOrden(${u.idMantenimiento})">
+            <span class="chip-reciente"><i class="bi bi-star-fill me-1"></i>Último servicio</span>
+            <span class="codigo">${codigoOrden(u.idMantenimiento)}</span>
+            <span>${fecha(u.fechaIngreso)}</span>${badgeTipo(u.tipoMantenimiento)}${badgeEstadoOrden(u.estado)}
+            <span class="small text-muted-2 truncate" style="max-width:320px">${esc(u.diagnostico || u.trabajosRealizados || '')}</span>
+            <span class="ms-auto monto">${dinero(u.costo)}</span>
+        </div>` : '';
+
+    document.getElementById('btnHistorialNuevaOrden').onclick = () => {
+        modal.historial.hide();
+        abrirModalOrden(null, idAuto);
+    };
+    renderHistorial();
+    modal.historial.show();
+}
+
+/** Más reciente primero: fecha de ingreso descendente y, a igual fecha, el número de orden mayor. */
+function ordenesOrdenadas(lista) {
+    return [...lista].sort((a, b) =>
+        String(b.fechaIngreso || '').localeCompare(String(a.fechaIngreso || '')) || b.idMantenimiento - a.idMantenimiento);
+}
+
+function renderHistorial() {
+    if (historialAutoId == null) return;
+    const q = normalizar(document.getElementById('histTexto').value);
+    const tipo = document.getElementById('histTipo').value;
+    const estado = document.getElementById('histEstado').value;
+    const desde = document.getElementById('histDesde').value;
+    const hasta = document.getElementById('histHasta').value;
+    const todas = ordenesOrdenadas(ordenes.filter(o => o.auto?.idAuto === historialAutoId));
+    const idMasReciente = todas[0]?.idMantenimiento;
+
+    const lista = todas.filter(o =>
+        (!tipo || o.tipoMantenimiento === tipo) && (!estado || o.estado === estado) &&
+        (!desde || o.fechaIngreso >= desde) && (!hasta || o.fechaIngreso <= hasta) &&
+        (!q || normalizar([o.diagnostico, o.trabajosRealizados, nombreMecanico(o.mecanico), codigoOrden(o.idMantenimiento),
+            ...(o.detalles || []).map(d => d.descripcion)].join(' ')).includes(q)));
+
+    document.getElementById('tablaHistorial').innerHTML = lista.length === 0
+        ? filaVacia(8, 'bi-clipboard', todas.length ? 'Ninguna orden coincide con los filtros.' : 'Este vehículo aún no tiene órdenes de trabajo.')
+        : lista.map(o => `
+            <tr class="${o.idMantenimiento === idMasReciente ? 'fila-reciente' : ''}" style="cursor:pointer" onclick="modal.historial.hide(); abrirModalOrden(${o.idMantenimiento})">
+                <td class="codigo">${codigoOrden(o.idMantenimiento)} ${o.idMantenimiento === idMasReciente ? '<span class="chip-reciente ms-1">Reciente</span>' : ''}</td>
+                <td>${fecha(o.fechaIngreso)}<div class="small text-muted-2">${o.kilometraje != null ? km(o.kilometraje) : '—'}</div></td>
+                <td>${badgeTipo(o.tipoMantenimiento)}</td>
+                <td><div class="truncate" title="${esc(o.diagnostico)}">${esc(o.diagnostico) || '—'}</div></td>
+                <td><div class="truncate" title="${esc(o.trabajosRealizados)}">${esc(o.trabajosRealizados) || '—'}</div></td>
+                <td>${esc(nombreMecanico(o.mecanico)) || '<span class="text-muted-2">Sin asignar</span>'}</td>
+                <td class="text-end monto">${dinero(o.costo)}</td>
+                <td>${badgeEstadoOrden(o.estado)}</td>
+            </tr>`).join('');
+}
+
+function limpiarFiltrosHistorial() {
+    ['histTexto', 'histTipo', 'histEstado', 'histDesde', 'histHasta'].forEach(id => document.getElementById(id).value = '');
+    renderHistorial();
+}
+
+/* =====================================================================
+   ÓRDENES DE TRABAJO
+   ===================================================================== */
+function renderOrdenes() {
+    const q = normalizar(document.getElementById('buscarOrden').value);
+    const estado = document.getElementById('filtroEstadoOrden').value;
+
+    const lista = ordenes.filter(o => {
+        if (estado === 'ABIERTAS' && o.estado === 'Finalizado') return false;
+        if (estado && estado !== 'ABIERTAS' && o.estado !== estado) return false;
+        if (!q) return true;
+        const texto = normalizar([codigoOrden(o.idMantenimiento), o.auto?.placa, o.auto?.marca, o.auto?.modelo,
+            o.diagnostico, o.trabajosRealizados, nombreMecanico(o.mecanico)].join(' '));
+        return texto.includes(q);
+    });
+
+    const tbody = document.getElementById('tablaOrdenes');
+    if (lista.length === 0) {
+        tbody.innerHTML = filaVacia(9, 'bi-clipboard2', ordenes.length ? 'Ninguna orden coincide con la búsqueda.' : 'Aún no hay órdenes de trabajo.');
+        return;
+    }
+
+    tbody.innerHTML = lista.map(o => {
+        const bloqueada = o.estado === 'Finalizado' && !ES_ADMIN;
+        let paso = '';
+        if (o.estado === 'Pendiente') {
+            paso = `<button class="btn-step" onclick="cambiarEstadoOrden(${o.idMantenimiento}, 'En Proceso')" title="Iniciar trabajo"><i class="bi bi-play-fill"></i> Iniciar</button>`;
+        } else if (o.estado === 'En Proceso') {
+            paso = `<button class="btn-step" onclick="cambiarEstadoOrden(${o.idMantenimiento}, 'Finalizado')" title="Finalizar orden"><i class="bi bi-check2"></i> Finalizar</button>`;
+        }
+        return `
+        <tr>
+            <td class="codigo">${codigoOrden(o.idMantenimiento)}</td>
+            <td class="text-nowrap">${fecha(o.fechaIngreso)}</td>
+            <td>
+                <span class="placa">${esc(o.auto?.placa)}</span>
+                <div class="small text-muted-2 mt-1 text-nowrap">${esc(o.auto?.marca)} ${esc(o.auto?.modelo)}</div>
+            </td>
+            <td>${badgeTipo(o.tipoMantenimiento)}</td>
+            <td><div class="truncate" title="${esc(o.diagnostico)}">${esc(o.diagnostico) || '<span class="text-muted-2">—</span>'}</div></td>
+            <td>${esc(nombreMecanico(o.mecanico)) || '<span class="text-muted-2">Sin asignar</span>'}</td>
+            <td class="text-end monto">${dinero(o.costo)}${o.aprobadoCliente ? ' <i class="bi bi-hand-thumbs-up-fill text-success" title="Presupuesto aprobado por el cliente"></i>' : ''}</td>
+            <td>${badgeEstadoOrden(o.estado)}</td>
+            <td class="text-end text-nowrap">
+                ${paso}
+                <button class="btn-icon" title="${bloqueada ? 'Ver orden' : 'Abrir / editar orden'}" aria-label="Abrir orden" onclick="abrirModalOrden(${o.idMantenimiento})">
+                    <i class="bi ${bloqueada ? 'bi-eye' : 'bi-pencil'}"></i></button>
+                <button class="btn-icon" title="Imprimir / PDF" aria-label="Imprimir orden" onclick="imprimirOrden(${o.idMantenimiento})"><i class="bi bi-printer"></i></button>
+                ${ES_ADMIN ? `<button class="btn-icon danger" title="Eliminar" aria-label="Eliminar" onclick="eliminarOrden(${o.idMantenimiento})"><i class="bi bi-trash3"></i></button>` : ''}
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function limpiarFiltrosOrdenes() {
+    document.getElementById('buscarOrden').value = '';
+    document.getElementById('filtroEstadoOrden').value = '';
+    renderOrdenes();
+}
+
+function poblarSelectsOrden(autoSel, mecanicoSel) {
+    const selAuto = document.getElementById('ordenAuto');
+    const ordenados = [...autos].sort((a, b) => (a.placa || '').localeCompare(b.placa || ''));
+    selAuto.innerHTML = '<option value="">Seleccione el vehículo…</option>' + ordenados.map(a =>
+        `<option value="${a.idAuto}">${esc(a.placa)} · ${esc(a.marca)} ${esc(a.modelo)} — ${esc(nombreCliente(a.cliente))}</option>`).join('');
+    selAuto.value = autoSel || '';
+
+    const selMec = document.getElementById('ordenMecanico');
+    selMec.innerHTML = '<option value="">Sin asignar</option>' + mecanicos.map(m =>
+        `<option value="${m.idUsuario}">${esc(nombreMecanico(m))}</option>`).join('');
+    selMec.value = mecanicoSel || '';
+}
+
+function abrirModalOrden(idOrden, idAutoPreseleccionado, opciones = {}) {
+    const form = document.getElementById('formOrden');
+    form.reset();
+    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    document.getElementById('tablaDetalle').innerHTML = '';
+
+    const o = idOrden ? ordenes.find(x => x.idMantenimiento === idOrden) : null;
+    const yo = mecanicos.find(m => m.username === USERNAME);
+
+    // Repuestos que esta orden ya consumió (se suman al disponible al editarla)
+    consumoOriginal = {};
+    (o?.detalles || []).forEach(d => {
+        if (d.repuesto) consumoOriginal[d.repuesto.idRepuesto] = (consumoOriginal[d.repuesto.idRepuesto] || 0) + Number(d.cantidad);
+    });
+
+    poblarSelectsOrden(o ? o.auto?.idAuto : idAutoPreseleccionado, o ? o.mecanico?.idUsuario : (yo ? yo.idUsuario : ''));
+    document.getElementById('ordenId').value = o ? o.idMantenimiento : '';
+    document.getElementById('ordenSolicitudId').value = !o && opciones.solicitudId ? opciones.solicitudId : '';
+    let avisos = '';
+    if (!o && opciones.solicitudId) {
+        avisos += `<div class="alert alert-light border small py-2 mb-3"><i class="bi bi-calendar-check me-1"></i>Esta orden se crea desde una <b>solicitud del portal</b>; al guardarla, la solicitud quedará como atendida.</div>`;
+    }
+    if (o && o.aprobadoCliente) {
+        avisos += `<div class="alert alert-success small py-2 mb-3"><i class="bi bi-hand-thumbs-up me-1"></i>El cliente <b>aprobó el presupuesto</b> el ${fechaHoraCorta(o.fechaAprobacion)}. Si cambia el total, la aprobación se anula.</div>`;
+    } else if (o && o.estado !== 'Finalizado' && Number(o.costo) > 0) {
+        avisos += `<div class="alert alert-warning small py-2 mb-3"><i class="bi bi-hourglass-split me-1"></i>Presupuesto aún <b>no aprobado</b> por el cliente.</div>`;
+    }
+    document.getElementById('ordenAvisos').innerHTML = avisos;
+    document.getElementById('modalOrdenTitulo').textContent = o ? `Orden ${codigoOrden(o.idMantenimiento)}` : 'Nueva orden de trabajo';
+
+    if (o) {
+        document.getElementById('ordenFecha').value = o.fechaIngreso || '';
+        document.getElementById('ordenTipo').value = o.tipoMantenimiento || 'Preventivo';
+        document.getElementById('ordenEstado').value = o.estado || 'Pendiente';
+        document.getElementById('ordenKm').value = o.kilometraje ?? '';
+        document.getElementById('ordenDiagnostico').value = o.diagnostico || '';
+        document.getElementById('ordenTrabajos').value = o.trabajosRealizados || '';
+        (o.detalles || []).forEach(d => agregarLinea(d.tipo, d));
+        if (!o.detalles || o.detalles.length === 0) {
+            document.getElementById('ordenCostoManual').value = o.costo != null ? Number(o.costo).toFixed(2) : '';
+        }
+    } else {
+        document.getElementById('ordenFecha').value = hoyISO();
+        document.getElementById('ordenEstado').value = 'Pendiente';
+        if (opciones.tipo) document.getElementById('ordenTipo').value = opciones.tipo;
+        if (opciones.fecha) document.getElementById('ordenFecha').value = opciones.fecha;
+        if (opciones.diagnostico) document.getElementById('ordenDiagnostico').value = opciones.diagnostico;
+        sugerirKmOrden();
+    }
+
+    // Una orden finalizada es de solo lectura para el mecánico
+    const soloLectura = !!o && o.estado === 'Finalizado' && !ES_ADMIN;
+    document.getElementById('ordenFieldset').disabled = soloLectura;
+    document.getElementById('btnGuardarOrden').classList.toggle('d-none', soloLectura);
+    document.getElementById('botonesDetalle').classList.toggle('d-none', soloLectura);
+    document.getElementById('ordenAvisoSoloLectura').innerHTML = soloLectura
+        ? '<i class="bi bi-lock me-1"></i>Orden finalizada: solo el administrador puede modificarla.' : '';
+
+    const btnImprimir = document.getElementById('btnImprimirOrden');
+    btnImprimir.classList.toggle('d-none', !o);
+    btnImprimir.onclick = () => o && imprimirOrden(o.idMantenimiento);
+
+    actualizarPreviewEstado();
+    recalcularTotales();
+    modal.orden.show();
+}
+
+/** En una orden nueva, propone el kilometraje actual del vehículo elegido. */
+function sugerirKmOrden() {
+    if (document.getElementById('ordenId').value) return;
+    const a = autos.find(x => x.idAuto === Number(document.getElementById('ordenAuto').value));
+    document.getElementById('ordenKm').value = a?.kilometraje ?? '';
+}
+
+function actualizarPreviewEstado() {
+    document.getElementById('ordenEstadoAutoPreview').textContent =
+        ORDEN_A_AUTO[document.getElementById('ordenEstado').value] || '—';
+}
+
+let contadorLineas = 0;
+let consumoOriginal = {};
+
+function opcionesInventario(seleccionado) {
+    return '<option value="">Seleccione del inventario…</option>' +
+        repuestos.map(r => `<option value="${r.idRepuesto}" ${r.idRepuesto === seleccionado ? 'selected' : ''}>` +
+            `${esc(r.codigo)} · ${esc(r.nombre)} (stock ${cant(r.stock)})</option>`).join('') +
+        `<option value="OTRO" ${seleccionado === 'OTRO' ? 'selected' : ''}>Otro (no inventariado)…</option>`;
+}
+
+function agregarLinea(tipo, datos) {
+    const tr = document.createElement('tr');
+    tr.id = 'linea' + (++contadorLineas);
+    tr.dataset.tipo = tipo;
+    const esRepuesto = tipo === 'REPUESTO';
+    const etiqueta = esRepuesto
+        ? '<span class="tipo t-preventivo"><i class="bi bi-box-seam me-1"></i>Repuesto</span>'
+        : '<span class="tipo" style="color:#2F5872;border-color:#C3D3DE;background:#EEF3F7"><i class="bi bi-person-workspace me-1"></i>Mano de obra</span>';
+
+    const seleccion = datos ? (datos.repuesto ? datos.repuesto.idRepuesto : 'OTRO') : '';
+    tr.innerHTML = `
+        <td>${etiqueta}</td>
+        <td>
+            ${esRepuesto ? `<select class="form-select form-select-sm d-rep mb-1">${opcionesInventario(seleccion)}</select>` : ''}
+            <input type="text" class="form-control form-control-sm d-desc" maxlength="120"
+                   placeholder="${esRepuesto ? 'Descripción del repuesto' : 'Ej. Cambio de aceite y filtro'}">
+            <div class="form-hint d-stock"></div>
+        </td>
+        <td><input type="number" class="form-control form-control-sm text-end d-cant" min="0.01" step="0.01" value="1" required></td>
+        <td><input type="number" class="form-control form-control-sm text-end d-precio" min="0" step="0.01" placeholder="0.00" required></td>
+        <td class="text-end fw-semibold d-sub">$0.00</td>
+        <td class="text-end"><button type="button" class="btn-icon danger d-quitar" aria-label="Quitar línea" title="Quitar"><i class="bi bi-x-lg"></i></button></td>`;
+
+    if (datos) {
+        tr.querySelector('.d-desc').value = datos.descripcion || '';
+        tr.querySelector('.d-cant').value = datos.cantidad ?? 1;
+        tr.querySelector('.d-precio').value = datos.precioUnitario != null ? Number(datos.precioUnitario).toFixed(2) : '';
+    }
+
+    const sel = tr.querySelector('.d-rep');
+    if (sel) {
+        sel.addEventListener('change', () => {
+            const r = repuestos.find(x => x.idRepuesto === Number(sel.value));
+            if (r) {
+                tr.querySelector('.d-desc').value = r.nombre;
+                tr.querySelector('.d-precio').value = Number(r.precioVenta).toFixed(2);
+            } else if (sel.value === 'OTRO') {
+                tr.querySelector('.d-desc').value = '';
+                tr.querySelector('.d-desc').focus();
+            }
+            actualizarLineaRepuesto(tr);
+            recalcularTotales();
+        });
+        actualizarLineaRepuesto(tr);
+    }
+
+    tr.querySelectorAll('input').forEach(i => i.addEventListener('input', recalcularTotales));
+    tr.querySelector('.d-quitar').addEventListener('click', () => { tr.remove(); recalcularTotales(); });
+    document.getElementById('tablaDetalle').appendChild(tr);
+    recalcularTotales();
+    if (!datos) (sel || tr.querySelector('.d-desc')).focus();
+}
+
+/** Muestra el campo de descripción solo para "Otro"; si es del inventario, la descripción es el nombre. */
+function actualizarLineaRepuesto(tr) {
+    const sel = tr.querySelector('.d-rep');
+    if (!sel) return;
+    tr.querySelector('.d-desc').classList.toggle('d-none', sel.value !== 'OTRO');
+}
+
+/** Disponible para esta orden = stock actual + lo que la orden ya tenía descontado. */
+function disponibleParaOrden(idRepuesto) {
+    const r = repuestos.find(x => x.idRepuesto === idRepuesto);
+    return r ? Number(r.stock) + (consumoOriginal[idRepuesto] || 0) : 0;
+}
+
+function leerLineas() {
+    return [...document.querySelectorAll('#tablaDetalle tr')].map(tr => {
+        const sel = tr.querySelector('.d-rep');
+        const repuestoId = sel && sel.value && sel.value !== 'OTRO' ? Number(sel.value) : null;
+        const rep = repuestoId ? repuestos.find(x => x.idRepuesto === repuestoId) : null;
+        return {
+            tipo: tr.dataset.tipo,
+            repuestoId,
+            descripcion: rep ? rep.nombre : tr.querySelector('.d-desc').value.trim(),
+            cantidad: Number(tr.querySelector('.d-cant').value || 0),
+            precioUnitario: Number(tr.querySelector('.d-precio').value || 0),
+            sinSeleccion: !!sel && sel.value === '',
+            fila: tr
+        };
+    });
+}
+
+function recalcularTotales() {
+    const lineas = leerLineas();
+    let totRep = 0, totMo = 0;
+
+    // Cantidad pedida por repuesto (puede repetirse en varias líneas)
+    const pedido = {};
+    lineas.forEach(l => { if (l.repuestoId) pedido[l.repuestoId] = (pedido[l.repuestoId] || 0) + l.cantidad; });
+
+    lineas.forEach(l => {
+        const sub = l.cantidad * l.precioUnitario;
+        l.fila.querySelector('.d-sub').textContent = dinero(sub);
+        if (l.tipo === 'REPUESTO') totRep += sub; else totMo += sub;
+
+        const hint = l.fila.querySelector('.d-stock');
+        if (l.repuestoId) {
+            const r = repuestos.find(x => x.idRepuesto === l.repuestoId);
+            const disp = disponibleParaOrden(l.repuestoId);
+            const falta = pedido[l.repuestoId] > disp;
+            hint.innerHTML = `<span class="${falta ? 'stock-bajo fw-semibold' : ''}">Disponible: ${cant(disp)} ${esc(r?.unidad || '')}${falta ? ' — stock insuficiente' : ''}</span>`;
+        } else {
+            hint.innerHTML = '';
+        }
+    });
+
+    const hayLineas = lineas.length > 0;
+    document.getElementById('costoManualBox').classList.toggle('d-none', hayLineas);
+    const total = hayLineas ? totRep + totMo : Number(document.getElementById('ordenCostoManual').value || 0);
+    document.getElementById('totRepuestos').textContent = dinero(totRep);
+    document.getElementById('totManoObra').textContent = dinero(totMo);
+    document.getElementById('totGeneral').textContent = dinero(total);
+}
+
+async function guardarOrden(e) {
+    e.preventDefault();
+    const id = document.getElementById('ordenId').value;
+    const lineas = leerLineas();
+
+    // Validación rápida de las líneas antes de enviar
+    let lineasValidas = true;
+    lineas.forEach(l => {
+        const desc = l.fila.querySelector('.d-desc');
+        const precio = l.fila.querySelector('.d-precio');
+        const cant = l.fila.querySelector('.d-cant');
+        const sel = l.fila.querySelector('.d-rep');
+        if (sel) sel.classList.toggle('is-invalid', l.sinSeleccion);
+        desc.classList.toggle('is-invalid', !l.sinSeleccion && !l.descripcion);
+        cant.classList.toggle('is-invalid', !(l.cantidad > 0));
+        precio.classList.toggle('is-invalid', precio.value === '' || l.precioUnitario < 0);
+        if (l.sinSeleccion || !l.descripcion || !(l.cantidad > 0) || precio.value === '' || l.precioUnitario < 0) lineasValidas = false;
+    });
+    if (!lineasValidas) { toast('Complete el repuesto o la descripción, cantidad y precio de cada línea', 'error'); return; }
+
+    const valor = idCampo => document.getElementById(idCampo).value;
+    const datos = {
+        autoId: valor('ordenAuto') ? Number(valor('ordenAuto')) : null,
+        mecanicoId: valor('ordenMecanico') ? Number(valor('ordenMecanico')) : null,
+        fechaIngreso: valor('ordenFecha') || null,
+        kilometraje: valor('ordenKm') === '' ? null : Number(valor('ordenKm')),
+        tipoMantenimiento: valor('ordenTipo'),
+        estado: valor('ordenEstado'),
+        diagnostico: valor('ordenDiagnostico').trim(),
+        trabajosRealizados: valor('ordenTrabajos').trim(),
+        costo: lineas.length ? null : (valor('ordenCostoManual') === '' ? 0 : Number(valor('ordenCostoManual'))),
+        detalles: lineas.map(({ fila, sinSeleccion, ...resto }) => resto),
+        solicitudId: valor('ordenSolicitudId') ? Number(valor('ordenSolicitudId')) : null
+    };
+    const campos = { autoId: 'ordenAuto', tipoMantenimiento: 'ordenTipo', estado: 'ordenEstado',
+                     diagnostico: 'ordenDiagnostico', trabajosRealizados: 'ordenTrabajos', costo: 'ordenCostoManual',
+                     kilometraje: 'ordenKm' };
+    try {
+        const r = await api(id ? `/api/mantenimientos/${id}` : '/api/mantenimientos', { method: id ? 'PUT' : 'POST', body: datos });
+        modal.orden.hide();
+        toast(id ? `Orden ${codigoOrden(r.idMantenimiento)} actualizada` : `Orden ${codigoOrden(r.idMantenimiento)} creada`);
+        await cargarTodo();
+    } catch (err) {
+        marcarErrores(campos, err.errores);
+        toast(err.message, 'error');
+    }
+}
+
+async function cambiarEstadoOrden(idOrden, estado) {
+    if (estado === 'Finalizado') {
+        const o = ordenes.find(x => x.idMantenimiento === idOrden);
+        const ok = await confirmar(`¿Finalizar ${codigoOrden(idOrden)}?`,
+            `Total: ${dinero(o?.costo)}. El vehículo ${o?.auto?.placa || ''} pasará a "Listo".` +
+            (ES_ADMIN ? '' : ' Después ya no podrá editarla.'), 'Finalizar');
+        if (!ok) return;
+    }
+    try {
+        await api(`/api/mantenimientos/${idOrden}/estado?estado=${encodeURIComponent(estado)}`, { method: 'PATCH' });
+        toast(`${codigoOrden(idOrden)} → ${estado}`);
+        await cargarTodo();
+    } catch (err) {
+        toast(err.message, 'error');
+    }
+}
+
+async function eliminarOrden(idOrden) {
+    const ok = await confirmar(`¿Eliminar la orden ${codigoOrden(idOrden)}?`, 'Se eliminará junto con su detalle. Esta acción no se puede deshacer.');
+    if (!ok) return;
+    try {
+        await api(`/api/mantenimientos/${idOrden}`, { method: 'DELETE' });
+        toast('Orden eliminada');
+        await cargarTodo();
+    } catch (err) {
+        toast(err.message, 'error');
+    }
+}
+
+/* =====================================================================
+   CLIENTES
+   ===================================================================== */
+function renderClientes() {
+    const q = normalizar(document.getElementById('buscarCliente').value);
+    const lista = clientes.filter(c => !q ||
+        normalizar([c.nombre, c.apellido, c.cedula, c.telefono, c.correo].join(' ')).includes(q))
+        .sort((a, b) => nombreCliente(a).localeCompare(nombreCliente(b)));
+
+    const tbody = document.getElementById('tablaClientes');
+    if (lista.length === 0) {
+        tbody.innerHTML = filaVacia(ES_ADMIN ? 7 : 6, 'bi-people', clientes.length ? 'Ningún cliente coincide con la búsqueda.' : 'Aún no hay clientes registrados.');
+        return;
+    }
+    tbody.innerHTML = lista.map(c => {
+        const n = autos.filter(a => a.cliente?.cedula === c.cedula).length;
+        return `
+        <tr>
+            <td class="fw-semibold">${esc(nombreCliente(c))}</td>
+            <td><span class="codigo">${esc(c.cedula)}</span></td>
+            <td>${c.telefono ? `<a class="text-decoration-none text-reset" href="tel:${esc(c.telefono)}"><i class="bi bi-telephone me-1 text-muted-2"></i>${esc(c.telefono)}</a>` : '<span class="text-muted-2">—</span>'}</td>
+            <td>${c.correo ? `<a class="text-decoration-none text-reset" href="mailto:${esc(c.correo)}">${esc(c.correo)}</a>` : '<span class="text-muted-2">—</span>'}</td>
+            <td>${n ? `<button class="link-chip" onclick="verAutosDeCliente('${esc(c.cedula)}')"><i class="bi bi-car-front me-1"></i>${n} ${n === 1 ? 'vehículo' : 'vehículos'}</button>` : '<span class="text-muted-2 small">Ninguno</span>'}</td>
+            ${ES_ADMIN ? `<td class="text-nowrap">${cuentaDeCliente(c.cedula)
+                ? `<span class="estado e-listo" title="Usuario: ${esc(cuentaDeCliente(c.cedula).username)}">Activo</span>
+                   <button class="btn-icon danger" title="Quitar acceso" aria-label="Quitar acceso" onclick="quitarAcceso('${esc(c.cedula)}')"><i class="bi bi-person-x"></i></button>`
+                : `<button class="btn-step" onclick="crearAcceso('${esc(c.cedula)}')"><i class="bi bi-key"></i> Crear acceso</button>`}</td>` : ''}
+            <td class="text-end text-nowrap">
+                <button class="btn-icon" title="Editar" aria-label="Editar" onclick="abrirModalCliente('${esc(c.cedula)}')"><i class="bi bi-pencil"></i></button>
+                ${ES_ADMIN ? `<button class="btn-icon danger" title="Eliminar" aria-label="Eliminar" onclick="eliminarCliente('${esc(c.cedula)}')"><i class="bi bi-trash3"></i></button>` : ''}
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function verAutosDeCliente(cedula) {
+    document.getElementById('filtroEstadoAuto').value = '';
+    document.getElementById('buscarAuto').value = cedula;
+    renderAutos();
+    mostrarTab('tab-autos-btn');
+}
+
+let clienteDesdeModalAuto = false;
+function abrirModalCliente(cedula, desdeAuto = false) {
+    clienteDesdeModalAuto = desdeAuto;
+    const form = document.getElementById('formCliente');
+    form.reset();
+    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    const c = cedula ? clientes.find(x => x.cedula === cedula) : null;
+
+    document.getElementById('clienteModo').value = c ? 'editar' : 'nuevo';
+    document.getElementById('modalClienteTitulo').textContent = c ? 'Editar cliente' : 'Nuevo cliente';
+    document.getElementById('clienteCedula').readOnly = !!c;
+    if (c) {
+        document.getElementById('clienteCedula').value = c.cedula;
+        document.getElementById('clienteNombre').value = c.nombre || '';
+        document.getElementById('clienteApellido').value = c.apellido || '';
+        document.getElementById('clienteTelefono').value = c.telefono || '';
+        document.getElementById('clienteCorreo').value = c.correo || '';
+    }
+    if (desdeAuto) {
+        // Esperar a que se cierre el modal del vehículo antes de abrir el del cliente
+        document.getElementById('modalAuto').addEventListener('hidden.bs.modal', () => modal.cliente.show(), { once: true });
+        modal.auto.hide();
+    } else {
+        modal.cliente.show();
+    }
+}
+
+async function guardarCliente(e) {
+    e.preventDefault();
+    const editar = document.getElementById('clienteModo').value === 'editar';
+    const datos = {
+        cedula: document.getElementById('clienteCedula').value.trim(),
+        nombre: document.getElementById('clienteNombre').value.trim(),
+        apellido: document.getElementById('clienteApellido').value.trim(),
+        telefono: document.getElementById('clienteTelefono').value.trim(),
+        correo: document.getElementById('clienteCorreo').value.trim()
+    };
+    const campos = { cedula: 'clienteCedula', nombre: 'clienteNombre', apellido: 'clienteApellido',
+                     telefono: 'clienteTelefono', correo: 'clienteCorreo' };
+    try {
+        await api(editar ? `/api/clientes/${encodeURIComponent(datos.cedula)}` : '/api/clientes',
+                  { method: editar ? 'PUT' : 'POST', body: datos });
+        const volverAVehiculo = clienteDesdeModalAuto;
+        clienteDesdeModalAuto = false;
+        await cargarTodo();
+        if (volverAVehiculo) {
+            // Volver al formulario del vehículo con el cliente recién creado seleccionado
+            document.getElementById('modalCliente').addEventListener('hidden.bs.modal', () => {
+                poblarSelectClientes(datos.cedula);
+                modal.auto.show();
+            }, { once: true });
+        }
+        modal.cliente.hide();
+        toast(editar ? 'Cliente actualizado' : 'Cliente registrado');
+    } catch (err) {
+        marcarErrores(campos, err.errores);
+        if (!err.errores && /cédula/i.test(err.message)) document.getElementById('clienteCedula').classList.add('is-invalid');
+        toast(err.message, 'error');
+    }
+}
+
+async function eliminarCliente(cedula) {
+    const c = clientes.find(x => x.cedula === cedula);
+    const n = autos.filter(a => a.cliente?.cedula === cedula).length;
+    const ok = await confirmar(`¿Eliminar a ${nombreCliente(c)}?`,
+        n ? `También se eliminarán sus ${n} vehículos y todo su historial.` : 'Esta acción no se puede deshacer.');
+    if (!ok) return;
+    try {
+        await api(`/api/clientes/${encodeURIComponent(cedula)}`, { method: 'DELETE' });
+        toast('Cliente eliminado');
+        await cargarTodo();
+    } catch (err) {
+        toast(err.message, 'error');
+    }
+}
+
+/* =====================================================================
+   USUARIOS (solo admin)
+   ===================================================================== */
+function renderUsuarios() {
+    const tbody = document.getElementById('tablaUsuarios');
+    if (!tbody) return;
+    if (usuarios.length === 0) { tbody.innerHTML = filaVacia(5, 'bi-person', 'No hay usuarios.'); return; }
+    tbody.innerHTML = usuarios.map(u => {
+        const esAdminU = u.rol === 'ROLE_ADMIN';
+        const esCli = u.rol === 'ROLE_CLIENTE';
+        const n = ordenes.filter(o => o.mecanico?.idUsuario === u.idUsuario).length;
+        const soyYo = u.username === USERNAME;
+        return `
+        <tr>
+            <td class="fw-semibold">${esc(u.nombreCompleto || '—')} ${soyYo ? '<span class="small text-muted-2">(usted)</span>' : ''}</td>
+            <td><span class="codigo">${esc(u.username)}</span></td>
+            <td><span class="estado ${esAdminU ? 'e-reparacion' : esCli ? 'e-entregado' : 'e-listo'}">${esAdminU ? 'Administrador' : esCli ? 'Cliente (portal)' : 'Mecánico'}</span></td>
+            <td>${esAdminU || esCli ? '<span class="text-muted-2">—</span>' : n}</td>
+            <td class="text-end">
+                ${soyYo ? '' : `<button class="btn-icon danger" title="Eliminar" aria-label="Eliminar" onclick="eliminarUsuario(${u.idUsuario})"><i class="bi bi-trash3"></i></button>`}
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function abrirModalUsuario() {
+    const form = document.getElementById('formUsuario');
+    form.reset();
+    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    modal.usuario.show();
+}
+
+async function guardarUsuario(e) {
+    e.preventDefault();
+    const datos = {
+        nombreCompleto: document.getElementById('usuarioNombre').value.trim(),
+        username: document.getElementById('usuarioUsername').value.trim(),
+        password: document.getElementById('usuarioPassword').value,
+        rol: document.getElementById('usuarioRol').value
+    };
+    const campos = { nombreCompleto: 'usuarioNombre', username: 'usuarioUsername', password: 'usuarioPassword', rol: 'usuarioRol' };
+    try {
+        await api('/api/usuarios', { method: 'POST', body: datos });
+        modal.usuario.hide();
+        toast(`Usuario ${datos.username} creado`);
+        await cargarTodo();
+    } catch (err) {
+        marcarErrores(campos, err.errores);
+        toast(err.message, 'error');
+    }
+}
+
+async function eliminarUsuario(id) {
+    const u = usuarios.find(x => x.idUsuario === id);
+    const ok = await confirmar(`¿Eliminar al usuario ${u?.username}?`, 'Ya no podrá ingresar al sistema.');
+    if (!ok) return;
+    try {
+        await api(`/api/usuarios/${id}`, { method: 'DELETE' });
+        toast('Usuario eliminado');
+        await cargarTodo();
+    } catch (err) {
+        toast(err.message, 'error');
+    }
+}
+
+/* =====================================================================
+   ALERTAS (bajo los KPIs)
+   ===================================================================== */
+function renderAlertas() {
+    const vencidos = recordatorios.items.filter(r => r.estado === 'VENCIDO').length;
+    const proximos = recordatorios.items.filter(r => r.estado === 'PROXIMO').length;
+    const bajos = repuestos.filter(r => r.stockBajo).length;
+    const pendSol = solicitudes.filter(s => s.estado === 'PENDIENTE').length;
+    const html = [];
+    if (pendSol) html.push(`<button class="alerta alerta-ambar" onclick="mostrarTab('tab-solicitudes-btn')"><i class="bi bi-calendar-check"></i>${pendSol} ${pendSol === 1 ? 'solicitud de cita pendiente' : 'solicitudes de cita pendientes'}</button>`);
+    if (vencidos) html.push(`<button class="alerta alerta-roja" onclick="irARecordatorios('VENCIDO')"><i class="bi bi-exclamation-circle"></i>${vencidos} ${vencidos === 1 ? 'vehículo con mantenimiento vencido' : 'vehículos con mantenimiento vencido'}</button>`);
+    if (proximos) html.push(`<button class="alerta alerta-ambar" onclick="irARecordatorios('PROXIMO')"><i class="bi bi-bell"></i>${proximos} ${proximos === 1 ? 'mantenimiento próximo' : 'mantenimientos próximos'}</button>`);
+    if (bajos) html.push(`<button class="alerta alerta-ambar" onclick="irAInventario(true)"><i class="bi bi-box-seam"></i>${bajos} ${bajos === 1 ? 'repuesto con stock bajo' : 'repuestos con stock bajo'}</button>`);
+    const cont = document.getElementById('alertas');
+    cont.innerHTML = html.join('');
+    cont.classList.toggle('d-none', html.length === 0);
+}
+
+function irARecordatorios(estado) {
+    document.getElementById('buscarRecordatorio').value = '';
+    document.getElementById('filtroRecordatorio').value = estado;
+    renderRecordatorios();
+    mostrarTab('tab-recordatorios-btn');
+}
+
+function irAInventario(soloBajo) {
+    document.getElementById('buscarRepuesto').value = '';
+    document.getElementById('soloStockBajo').checked = soloBajo;
+    renderInventario();
+    mostrarTab('tab-inventario-btn');
+}
+
+/* =====================================================================
+   INVENTARIO DE REPUESTOS
+   ===================================================================== */
+function renderInventario() {
+    const q = normalizar(document.getElementById('buscarRepuesto').value);
+    const soloBajo = document.getElementById('soloStockBajo').checked;
+    const lista = repuestos.filter(r => (!soloBajo || r.stockBajo) &&
+        (!q || normalizar(r.codigo + ' ' + r.nombre).includes(q)));
+
+    const bajos = repuestos.filter(r => r.stockBajo).length;
+    const valor = repuestos.reduce((s, r) => s + Number(r.stock) * Number(r.precioVenta), 0);
+    document.getElementById('resumenInventario').innerHTML =
+        `<b>${repuestos.length}</b> repuestos · <b>${bajos}</b> con stock bajo · valor en stock <b>${dinero(valor)}</b>`;
+    document.getElementById('countInventario').textContent = repuestos.length;
+
+    const tbody = document.getElementById('tablaInventario');
+    if (lista.length === 0) {
+        tbody.innerHTML = filaVacia(7, 'bi-box-seam', repuestos.length ? 'Ningún repuesto coincide con el filtro.' : 'El inventario está vacío.');
+        return;
+    }
+    tbody.innerHTML = lista.map(r => {
+        const stock = Number(r.stock), minimo = Number(r.stockMinimo);
+        const pct = Math.min(100, minimo > 0 ? (stock / (minimo * 3)) * 100 : 100);
+        return `
+        <tr>
+            <td><span class="codigo">${esc(r.codigo)}</span></td>
+            <td class="fw-semibold">${esc(r.nombre)}</td>
+            <td>
+                <span class="stock ${r.stockBajo ? 'stock-bajo' : 'stock-ok'}">${cant(stock)} ${esc(r.unidad)}</span>
+                ${r.stockBajo ? '<i class="bi bi-exclamation-triangle-fill stock-bajo ms-1" title="Stock bajo"></i>' : ''}
+                <div class="barra-stock ${r.stockBajo ? 'baja' : ''}"><span style="width:${pct}%"></span></div>
+            </td>
+            <td class="text-end text-muted-2">${cant(minimo)}</td>
+            <td class="text-end">${dinero(r.precioVenta)}</td>
+            <td class="text-end monto">${dinero(stock * Number(r.precioVenta))}</td>
+            <td class="text-end text-nowrap">
+                ${ES_ADMIN ? `
+                <button class="btn-step" onclick="abrirModalStock(${r.idRepuesto})" title="Registrar entrada o ajuste"><i class="bi bi-plus-slash-minus"></i> Stock</button>
+                <button class="btn-icon" title="Editar" aria-label="Editar" onclick="abrirModalRepuesto(${r.idRepuesto})"><i class="bi bi-pencil"></i></button>
+                <button class="btn-icon danger" title="Eliminar" aria-label="Eliminar" onclick="eliminarRepuesto(${r.idRepuesto})"><i class="bi bi-trash3"></i></button>`
+                : '<span class="small text-muted-2">Solo lectura</span>'}
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function abrirModalRepuesto(id) {
+    const form = document.getElementById('formRepuesto');
+    form.reset();
+    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    const r = id ? repuestos.find(x => x.idRepuesto === id) : null;
+    document.getElementById('repuestoId').value = r ? r.idRepuesto : '';
+    document.getElementById('modalRepuestoTitulo').textContent = r ? 'Editar repuesto' : 'Nuevo repuesto';
+    document.getElementById('repuestoStockBox').classList.toggle('d-none', !!r);
+    document.getElementById('repuestoStockHint').textContent = r
+        ? `Stock actual: ${cant(r.stock)} ${r.unidad}. Para cambiarlo use el botón "Stock" (entrada o ajuste).` : '';
+    if (r) {
+        document.getElementById('repuestoCodigo').value = r.codigo;
+        document.getElementById('repuestoNombre').value = r.nombre;
+        document.getElementById('repuestoUnidad').value = r.unidad;
+        document.getElementById('repuestoMinimo').value = Number(r.stockMinimo);
+        document.getElementById('repuestoPrecio').value = Number(r.precioVenta).toFixed(2);
+    } else {
+        document.getElementById('repuestoUnidad').value = 'unidad';
+    }
+    modal.repuesto.show();
+}
+
+async function guardarRepuesto(e) {
+    e.preventDefault();
+    const id = document.getElementById('repuestoId').value;
+    const num = idc => document.getElementById(idc).value === '' ? null : Number(document.getElementById(idc).value);
+    const datos = {
+        codigo: document.getElementById('repuestoCodigo').value.trim().toUpperCase(),
+        nombre: document.getElementById('repuestoNombre').value.trim(),
+        unidad: document.getElementById('repuestoUnidad').value.trim(),
+        stock: id ? null : (num('repuestoStock') ?? 0),
+        stockMinimo: num('repuestoMinimo'),
+        precioVenta: num('repuestoPrecio')
+    };
+    const campos = { codigo: 'repuestoCodigo', nombre: 'repuestoNombre', unidad: 'repuestoUnidad',
+                     stock: 'repuestoStock', stockMinimo: 'repuestoMinimo', precioVenta: 'repuestoPrecio' };
+    try {
+        await api(id ? `/api/repuestos/${id}` : '/api/repuestos', { method: id ? 'PUT' : 'POST', body: datos });
+        modal.repuesto.hide();
+        toast(id ? 'Repuesto actualizado' : `Repuesto ${datos.codigo} agregado`);
+        await cargarTodo();
+    } catch (err) {
+        marcarErrores(campos, err.errores);
+        toast(err.message, 'error');
+    }
+}
+
+function abrirModalStock(id) {
+    const r = repuestos.find(x => x.idRepuesto === id);
+    if (!r) return;
+    document.getElementById('stockRepuestoId').value = id;
+    document.getElementById('stockRepuestoDetalle').innerHTML =
+        `<span class="codigo me-2">${esc(r.codigo)}</span><b>${esc(r.nombre)}</b>
+         <div class="small text-muted-2 mt-1">Stock actual: ${cant(r.stock)} ${esc(r.unidad)} · mínimo ${cant(r.stockMinimo)}</div>`;
+    document.getElementById('movEntrada').checked = true;
+    document.getElementById('stockCantidad').value = '';
+    modal.stock.show();
+    setTimeout(() => document.getElementById('stockCantidad').focus(), 300);
+}
+
+async function guardarAjusteStock(e) {
+    e.preventDefault();
+    const id = document.getElementById('stockRepuestoId').value;
+    const signo = Number(document.querySelector('input[name="tipoMov"]:checked').value);
+    const cantidad = Number(document.getElementById('stockCantidad').value);
+    if (!(cantidad > 0)) { toast('Ingrese una cantidad mayor a cero', 'error'); return; }
+    try {
+        const r = await api(`/api/repuestos/${id}/stock?cantidad=${signo * cantidad}`, { method: 'PATCH' });
+        modal.stock.hide();
+        toast(`${r.nombre}: stock ${cant(r.stock)} ${r.unidad}`);
+        await cargarTodo();
+    } catch (err) {
+        toast(err.message, 'error');
+    }
+}
+
+async function eliminarRepuesto(id) {
+    const r = repuestos.find(x => x.idRepuesto === id);
+    const ok = await confirmar(`¿Eliminar ${r?.nombre}?`, 'Solo se pueden eliminar repuestos que nunca se usaron en una orden.');
+    if (!ok) return;
+    try {
+        await api(`/api/repuestos/${id}`, { method: 'DELETE' });
+        toast('Repuesto eliminado');
+        await cargarTodo();
+    } catch (err) {
+        toast(err.message, 'error');
+    }
+}
+
+/* =====================================================================
+   RECORDATORIOS DE MANTENIMIENTO PREVENTIVO
+   ===================================================================== */
+const ESTADO_RECORDATORIO = {
+    VENCIDO: ['e-vencido', 'Vencido'], PROXIMO: ['e-proximo', 'Próximo'],
+    AL_DIA: ['e-aldia', 'Al día'], SIN_HISTORIAL: ['e-sinhist', 'Sin historial']
+};
+
+function renderRecordatorios() {
+    const items = recordatorios.items || [];
+    const q = normalizar(document.getElementById('buscarRecordatorio').value);
+    const filtro = document.getElementById('filtroRecordatorio').value;
+    const lista = items.filter(r => {
+        if (filtro === 'URGENTES' && r.estado !== 'VENCIDO' && r.estado !== 'PROXIMO') return false;
+        if (filtro && filtro !== 'URGENTES' && r.estado !== filtro) return false;
+        return !q || normalizar([r.placa, r.vehiculo, r.cliente].join(' ')).includes(q);
+    });
+
+    document.getElementById('countRecordatorios').textContent =
+        items.filter(r => r.estado === 'VENCIDO' || r.estado === 'PROXIMO').length;
+    document.getElementById('reglaRecordatorio').innerHTML =
+        `<i class="bi bi-info-circle me-1"></i>Preventivo cada <b>${cant(recordatorios.intervaloKm)} km</b> o <b>${recordatorios.intervaloMeses} meses</b>, lo que ocurra primero`;
+
+    const tbody = document.getElementById('tablaRecordatorios');
+    if (lista.length === 0) {
+        tbody.innerHTML = filaVacia(7, 'bi-bell', filtro === 'URGENTES' ? 'No hay mantenimientos vencidos ni próximos. ¡Todo al día!' : 'No hay vehículos para este filtro.');
+        return;
+    }
+    tbody.innerHTML = lista.map(r => {
+        const [cls, txt] = ESTADO_RECORDATORIO[r.estado] || ['e-sinhist', r.estado];
+        let falta = '<span class="text-muted-2">—</span>';
+        if (r.estado !== 'SIN_HISTORIAL') {
+            const partes = [];
+            if (r.kmRestantes != null) partes.push(r.kmRestantes <= 0 ? `<b class="stock-bajo">${cant(-r.kmRestantes)} km pasado</b>` : `${cant(r.kmRestantes)} km`);
+            if (r.diasRestantes != null) partes.push(r.diasRestantes <= 0 ? `<b class="stock-bajo">${-r.diasRestantes} días de atraso</b>` : `${r.diasRestantes} días`);
+            falta = partes.join('<div class="small text-muted-2">') + (partes.length > 1 ? '</div>' : '');
+        }
+        const wa = enlaceWhatsApp(r);
+        return `
+        <tr>
+            <td><span class="placa">${esc(r.placa)}</span><div class="small text-muted-2 mt-1 text-nowrap">${esc(r.vehiculo)} · ${km(r.kmActual)}</div></td>
+            <td>${esc(r.cliente || '—')}<div class="small text-muted-2">${esc(r.telefono || '')}</div></td>
+            <td>${r.ultimoServicio ? `${fecha(r.ultimoServicio)}<div class="small text-muted-2">${r.kmUltimoServicio != null ? km(r.kmUltimoServicio) : 'km no registrado'} · <a href="#" class="text-reset" onclick="abrirModalOrden(${r.idUltimaOrden}); return false;">${codigoOrden(r.idUltimaOrden)}</a></div>` : '<span class="text-muted-2">Sin preventivos registrados</span>'}</td>
+            <td>${r.proximoKm != null || r.proximaFecha ? `${r.proximoKm != null ? km(r.proximoKm) : ''}<div class="small text-muted-2">${r.proximaFecha ? 'o el ' + fecha(r.proximaFecha) : ''}</div>` : '<span class="text-muted-2">—</span>'}</td>
+            <td>${falta}</td>
+            <td><span class="estado ${cls}">${txt}</span></td>
+            <td class="text-end text-nowrap">
+                ${wa ? `<a class="btn-icon btn-wa" href="${wa}" target="_blank" rel="noopener" title="Avisar por WhatsApp" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>` : ''}
+                ${r.correo ? `<a class="btn-icon" href="${enlaceCorreo(r)}" title="Avisar por correo" aria-label="Correo"><i class="bi bi-envelope"></i></a>` : ''}
+                <button class="btn-step" onclick="crearOrdenPreventiva(${r.idAuto})" title="Crear orden preventiva"><i class="bi bi-clipboard-plus"></i> Orden</button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function mensajeRecordatorio(r) {
+    const nombre = (r.cliente || '').split(' ')[0] || 'estimado cliente';
+    const cuando = r.estado === 'VENCIDO' ? 'ya cumplió el plazo de' : 'está próximo a';
+    const meta = [r.proximoKm != null ? `los ${cant(r.proximoKm)} km` : null, r.proximaFecha ? `el ${fecha(r.proximaFecha)}` : null]
+        .filter(Boolean).join(' o ');
+    return `Hola ${nombre}, le saludamos de ${TALLER.nombre}. Su vehículo ${r.vehiculo} (placa ${r.placa}) ${cuando} su mantenimiento preventivo` +
+        (meta ? ` (${meta})` : '') + '. ¿Desea agendar una cita? Responda este mensaje y le asignamos un turno.';
+}
+
+function enlaceWhatsApp(r) {
+    if (!r.telefono) return null;
+    let tel = String(r.telefono).replace(/\D/g, '');
+    if (tel.startsWith('0')) tel = '593' + tel.slice(1);     // 0991234567 -> 593991234567
+    if (tel.length < 11) return null;
+    return `https://wa.me/${tel}?text=${encodeURIComponent(mensajeRecordatorio(r))}`;
+}
+
+function enlaceCorreo(r) {
+    return `mailto:${encodeURIComponent(r.correo)}?subject=${encodeURIComponent('Recordatorio de mantenimiento - ' + r.placa)}&body=${encodeURIComponent(mensajeRecordatorio(r))}`;
+}
+
+function crearOrdenPreventiva(idAuto) {
+    const r = (recordatorios.items || []).find(x => x.idAuto === idAuto);
+    const diag = r && r.proximoKm != null ? `Mantenimiento preventivo de los ${cant(r.proximoKm)} km` : 'Mantenimiento preventivo';
+    abrirModalOrden(null, idAuto, { tipo: 'Preventivo', diagnostico: diag });
+}
+
+/* =====================================================================
+   REPORTES (solo admin)
+   ===================================================================== */
+function rangoReporte(tipo, generar = true) {
+    const hoy = new Date();
+    const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    let desde, hasta = hoy;
+    if (tipo === 'mes') desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    if (tipo === 'anterior') { desde = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1); hasta = new Date(hoy.getFullYear(), hoy.getMonth(), 0); }
+    if (tipo === '30') desde = new Date(hoy.getTime() - 29 * 86400000);
+    if (tipo === 'anio') desde = new Date(hoy.getFullYear(), 0, 1);
+    document.getElementById('repDesde').value = iso(desde);
+    document.getElementById('repHasta').value = iso(hasta);
+    if (generar) generarReporte();
+}
+
+async function generarReporte() {
+    const desde = document.getElementById('repDesde').value;
+    const hasta = document.getElementById('repHasta').value;
+    if (!desde || !hasta) { toast('Seleccione las fechas del periodo', 'error'); return; }
+    try {
+        ultimoReporte = await api(`/api/reportes/resumen?desde=${desde}&hasta=${hasta}`);
+        document.getElementById('reporteContenido').innerHTML = htmlReporte(ultimoReporte);
+        document.getElementById('btnReportePdf').disabled = false;
+    } catch (err) {
+        toast(err.message, 'error');
+    }
+}
+
+function barrasHorizontales(filas, mostrarCantidad) {
+    if (!filas || filas.length === 0) return '<div class="text-muted-2 small">Sin datos en el periodo.</div>';
+    const max = Math.max(...filas.map(f => Number(f.total)), 1);
+    return filas.map(f => `
+        <div class="barra-h">
+            <span class="etq" title="${esc(f.etiqueta)}">${esc(f.etiqueta)}</span>
+            <span class="track"><span style="width:${(Number(f.total) / max) * 100}%"></span></span>
+            <span class="text-end text-nowrap"><b>${dinero(f.total)}</b> <span class="text-muted-2 small">· ${mostrarCantidad(f)}</span></span>
+        </div>`).join('');
+}
+
+function htmlReporte(r) {
+    const ingresos = Number(r.ingresos);
+    const rep = Number(r.totalRepuestos), mo = Number(r.totalManoObra), sd = Number(r.totalSinDetalle);
+    const base = rep + mo + sd || 1;
+
+    let chart = '<div class="text-muted-2 small">Sin ingresos en el periodo.</div>';
+    if (r.ingresosPorDia.length) {
+        const max = Math.max(...r.ingresosPorDia.map(p => Number(p.total)), 1);
+        chart = `<div class="chart-dias">${r.ingresosPorDia.map(p =>
+            `<div class="col-bar" style="height:${Math.max(3, (Number(p.total) / max) * 100)}%" title="${fecha(p.fecha)}: ${dinero(p.total)}"></div>`).join('')}</div>
+            <div class="d-flex justify-content-between small text-muted-2 mt-1">
+                <span>${fecha(r.ingresosPorDia[0].fecha)}</span><span>${fecha(r.ingresosPorDia[r.ingresosPorDia.length - 1].fecha)}</span></div>`;
+    }
+
+    return `
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-lg-3"><div class="rep-kpi"><div class="l">Ingresos</div><div class="v">${dinero(ingresos)}</div><div class="small text-muted-2">${fecha(r.desde)} – ${fecha(r.hasta)}</div></div></div>
+        <div class="col-6 col-lg-3"><div class="rep-kpi"><div class="l">Órdenes finalizadas</div><div class="v">${r.ordenesFinalizadas}</div><div class="small text-muted-2">${r.ordenesAbiertas} abiertas actualmente</div></div></div>
+        <div class="col-6 col-lg-3"><div class="rep-kpi"><div class="l">Ticket promedio</div><div class="v">${dinero(r.ticketPromedio)}</div><div class="small text-muted-2">por orden</div></div></div>
+        <div class="col-6 col-lg-3"><div class="rep-kpi"><div class="l">Vehículos atendidos</div><div class="v">${r.vehiculosAtendidos}</div><div class="small text-muted-2">distintos</div></div></div>
+    </div>
+    <div class="row g-3 mb-3">
+        <div class="col-lg-7"><div class="rep-card"><h6>Ingresos por día</h6>${chart}</div></div>
+        <div class="col-lg-5"><div class="rep-card">
+            <h6>Composición de ingresos</h6>
+            <div class="split mb-2">
+                <span style="width:${rep / base * 100}%;background:var(--olive)"></span>
+                <span style="width:${mo / base * 100}%;background:#2F5872"></span>
+                <span style="width:${sd / base * 100}%;background:var(--beige)"></span>
+            </div>
+            <div class="leyenda small">
+                <div class="d-flex justify-content-between mb-1"><span><i style="background:var(--olive)"></i>Repuestos</span><b>${dinero(rep)}</b></div>
+                <div class="d-flex justify-content-between mb-1"><span><i style="background:#2F5872"></i>Mano de obra</span><b>${dinero(mo)}</b></div>
+                <div class="d-flex justify-content-between"><span><i style="background:var(--beige)"></i>Órdenes sin detalle</span><b>${dinero(sd)}</b></div>
+            </div>
+            <hr>
+            <h6 class="mb-2">Por tipo de mantenimiento</h6>
+            ${barrasHorizontales(r.porTipo, f => `${cant(f.cantidad)} órd.`)}
+        </div></div>
+    </div>
+    <div class="row g-3">
+        <div class="col-lg-4"><div class="rep-card"><h6>Productividad por mecánico</h6>${barrasHorizontales(r.porMecanico, f => `${cant(f.cantidad)} órd.`)}</div></div>
+        <div class="col-lg-4"><div class="rep-card"><h6>Servicios (mano de obra) más vendidos</h6>${barrasHorizontales(r.topServicios, f => `${cant(f.cantidad)} veces`)}</div></div>
+        <div class="col-lg-4"><div class="rep-card"><h6>Repuestos más usados</h6>${barrasHorizontales(r.topRepuestos, f => `${cant(f.cantidad)} u.`)}</div></div>
+    </div>`;
+}
+
+/* =====================================================================
+   IMPRESIÓN / PDF (el navegador permite "Guardar como PDF")
+   ===================================================================== */
+const ESTILOS_IMPRESION = `
+    @page { size: A4; margin: 14mm; }
+    * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { font-family: "Segoe UI", Roboto, Arial, sans-serif; color: #2B2A26; font-size: 12px; margin: 0; }
+    .doc-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #6B8E5A; padding-bottom: 10px; margin-bottom: 14px; }
+    .doc-head .taller { font-family: Georgia, serif; font-size: 22px; color: #2F3F27; }
+    .doc-head .datos { color: #6E6A60; font-size: 11px; margin-top: 2px; }
+    .doc-head .titulo { text-align: right; }
+    .doc-head .titulo .t { font-size: 15px; font-weight: 700; color: #2F3F27; text-transform: uppercase; letter-spacing: .5px; }
+    .doc-head .titulo .c { font-family: Consolas, monospace; font-size: 18px; font-weight: 700; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .box { border: 1px solid #E3D6C2; border-radius: 6px; padding: 8px 10px; }
+    .box h4 { margin: 0 0 6px; font-size: 10px; text-transform: uppercase; letter-spacing: .6px; color: #6E6A60; }
+    .box p { margin: 2px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 6px 0 12px; }
+    th { background: #FBF8F3; color: #6E6A60; font-size: 10px; text-transform: uppercase; letter-spacing: .4px; text-align: left; padding: 6px 8px; border-bottom: 1px solid #E3D6C2; }
+    td { padding: 6px 8px; border-bottom: 1px solid #EFE6D8; vertical-align: top; }
+    .r { text-align: right; } .muted { color: #6E6A60; }
+    .totales { margin-left: auto; width: 260px; }
+    .totales div { display: flex; justify-content: space-between; padding: 3px 0; }
+    .totales .total { border-top: 2px solid #2F3F27; margin-top: 4px; padding-top: 6px; font-size: 15px; font-weight: 700; color: #2F3F27; }
+    .firmas { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 50px; text-align: center; color: #6E6A60; }
+    .firmas div { border-top: 1px solid #2B2A26; padding-top: 4px; }
+    .pie { margin-top: 18px; font-size: 10px; color: #6E6A60; text-align: center; }
+    .placa { font-family: Consolas, monospace; font-weight: 700; border: 1.5px solid #2B2A26; border-top: 3px solid #6B8E5A; padding: 1px 6px; border-radius: 3px; }
+    /* Reporte */
+    .row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+    .row > div { flex: 1 1 0; min-width: 0; }
+    .rep-kpi, .rep-card { border: 1px solid #E3D6C2; border-radius: 6px; padding: 8px 10px; height: 100%; }
+    .rep-kpi { background: #FBF8F3; }
+    .rep-kpi .v { font-size: 17px; font-weight: 700; } .rep-kpi .l { font-size: 9px; font-weight: 700; color: #6E6A60; text-transform: uppercase; }
+    .rep-card h6 { margin: 0 0 8px; font-size: 12px; color: #2F3F27; }
+    .barra-h { display: grid; grid-template-columns: 1fr auto; column-gap: 6px; row-gap: 2px; align-items: center; margin-bottom: 6px; font-size: 11px; }
+    .barra-h .track { grid-column: 1 / -1; grid-row: 2; }
+    .barra-h .track { height: 8px; background: #F6F0E7; border-radius: 4px; overflow: hidden; display: block; }
+    .barra-h .track span { display: block; height: 100%; background: #6B8E5A; }
+    .barra-h .etq { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chart-dias { display: flex; align-items: flex-end; gap: 3px; height: 110px; border-bottom: 1px solid #E3D6C2; }
+    .chart-dias .col-bar { flex: 1; background: #6B8E5A; border-radius: 2px 2px 0 0; }
+    .split { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: #F6F0E7; margin-bottom: 6px; }
+    .split span { display: block; height: 100%; }
+    .leyenda i { display: inline-block; width: 9px; height: 9px; margin-right: 4px; }
+    .leyenda > div { display: flex; justify-content: space-between; }
+    .small { font-size: 10px; } .text-muted-2 { color: #6E6A60; } .text-end { text-align: right; } .text-nowrap { white-space: nowrap; }
+    hr { border: none; border-top: 1px solid #E3D6C2; margin: 8px 0; }
+    .d-flex { display: flex; } .justify-content-between { justify-content: space-between; }
+    .mb-1 { margin-bottom: 3px; } .mb-2 { margin-bottom: 6px; } .mt-1 { margin-top: 3px; }
+    :root { --olive: #6B8E5A; --beige: #EADCC8; }
+`;
+
+function encabezadoDocumento(titulo, codigo) {
+    const datos = [TALLER.ruc ? 'RUC ' + TALLER.ruc : '', TALLER.direccion, TALLER.telefono ? 'Tel. ' + TALLER.telefono : '']
+        .filter(Boolean).map(esc).join(' · ');
+    return `<div class="doc-head">
+        <div><div class="taller">${esc(TALLER.nombre)}</div><div class="datos">${datos}</div></div>
+        <div class="titulo"><div class="t">${esc(titulo)}</div>${codigo ? `<div class="c">${esc(codigo)}</div>` : ''}
+            <div class="datos">Emitido: ${new Date().toLocaleString('es-EC')}</div></div>
+    </div>`;
+}
+
+function abrirVentanaImpresion(titulo, cuerpo) {
+    const w = window.open('', '_blank');
+    if (!w) { toast('El navegador bloqueó la ventana emergente; permita ventanas para este sitio', 'error'); return; }
+    w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>${esc(titulo)}</title>
+        <style>${ESTILOS_IMPRESION}</style></head><body>${cuerpo}
+        <script>window.addEventListener('load', () => setTimeout(() => window.print(), 250));<\/script></body></html>`);
+    w.document.close();
+}
+
+function imprimirOrden(idOrden) {
+    const o = ordenes.find(x => x.idMantenimiento === idOrden);
+    if (!o) return;
+    const a = o.auto || {}, c = a.cliente || {};
+    const detalles = o.detalles || [];
+    let rep = 0, mo = 0;
+    const filas = detalles.length
+        ? detalles.map(d => {
+            const sub = Number(d.cantidad) * Number(d.precioUnitario);
+            if (d.tipo === 'REPUESTO') rep += sub; else mo += sub;
+            return `<tr><td>${d.tipo === 'REPUESTO' ? 'Repuesto' : 'Mano de obra'}</td>
+                <td>${esc(d.descripcion)}${d.repuesto ? ` <span class="muted">(${esc(d.repuesto.codigo)})</span>` : ''}</td>
+                <td class="r">${cant(d.cantidad)}</td><td class="r">${dinero(d.precioUnitario)}</td><td class="r">${dinero(sub)}</td></tr>`;
+        }).join('')
+        : `<tr><td>Servicio</td><td>${esc(o.trabajosRealizados || o.diagnostico || 'Servicio de mantenimiento')}</td>
+            <td class="r">1</td><td class="r">${dinero(o.costo)}</td><td class="r">${dinero(o.costo)}</td></tr>`;
+
+    const cuerpo = `
+        ${encabezadoDocumento('Orden de trabajo', codigoOrden(o.idMantenimiento))}
+        <div class="grid2">
+            <div class="box"><h4>Cliente</h4>
+                <p><b>${esc(nombreCliente(c))}</b></p>
+                <p>C.I. ${esc(c.cedula || '—')}</p>
+                <p>${esc(c.telefono || '')} ${c.correo ? '· ' + esc(c.correo) : ''}</p></div>
+            <div class="box"><h4>Vehículo</h4>
+                <p><span class="placa">${esc(a.placa)}</span> &nbsp;<b>${esc(a.marca)} ${esc(a.modelo)}</b> ${a.anio ? '(' + esc(a.anio) + ')' : ''}</p>
+                <p>Color: ${esc(a.color || '—')}</p>
+                <p>Kilometraje al ingreso: ${o.kilometraje != null ? km(o.kilometraje) : '—'}</p></div>
+        </div>
+        <div class="grid2">
+            <div class="box"><h4>Orden</h4>
+                <p>Tipo: <b>${esc(o.tipoMantenimiento)}</b> · Estado: <b>${esc(o.estado)}</b></p>
+                <p>Ingreso: ${fecha(o.fechaIngreso)}${o.fechaFinalizacion ? ' · Finalizada: ' + fecha(o.fechaFinalizacion) : ''}</p>
+                <p>Mecánico: ${esc(nombreMecanico(o.mecanico) || 'Sin asignar')}</p></div>
+            <div class="box"><h4>Diagnóstico y trabajos</h4>
+                <p><b>Diagnóstico:</b> ${esc(o.diagnostico || '—')}</p>
+                <p><b>Trabajos:</b> ${esc(o.trabajosRealizados || '—')}</p></div>
+        </div>
+        <table>
+            <thead><tr><th style="width:90px">Tipo</th><th>Descripción</th><th class="r" style="width:60px">Cant.</th><th class="r" style="width:90px">P. unitario</th><th class="r" style="width:90px">Subtotal</th></tr></thead>
+            <tbody>${filas}</tbody>
+        </table>
+        <div class="totales">
+            ${detalles.length ? `<div><span>Repuestos</span><span>${dinero(rep)}</span></div><div><span>Mano de obra</span><span>${dinero(mo)}</span></div>` : ''}
+            <div class="total"><span>Total</span><span>${dinero(o.costo)}</span></div>
+        </div>
+        <div class="firmas"><div>Firma del cliente</div><div>Responsable del taller</div></div>
+        <div class="pie">Documento interno de control del taller · no constituye comprobante de venta.</div>`;
+    abrirVentanaImpresion(`${codigoOrden(o.idMantenimiento)} - ${a.placa || ''}`, cuerpo);
+}
+
+function imprimirReporte() {
+    if (!ultimoReporte) return;
+    const r = ultimoReporte;
+    const cuerpo = `${encabezadoDocumento('Reporte de gestión', `${fecha(r.desde)} – ${fecha(r.hasta)}`)}
+        ${htmlReporte(r).replace(/class="row g-3[^"]*"/g, 'class="row"').replace(/class="col-(?:\d|sm|md|lg|xl)[^"]*"/g, '')}
+        <div class="pie">Generado por ${esc(NOMBRE_USUARIO)} · ${esc(TALLER.nombre)}</div>`;
+    abrirVentanaImpresion(`Reporte ${r.desde} a ${r.hasta}`, cuerpo);
+}
+
+/* =====================================================================
+   SOLICITUDES DEL PORTAL DEL CLIENTE
+   ===================================================================== */
+const ESTADO_SOL = {
+    PENDIENTE: ['e-pendiente', 'Pendiente'], ATENDIDA: ['e-finalizado', 'Atendida'],
+    RECHAZADA: ['e-vencido', 'Rechazada'], CANCELADA: ['e-entregado', 'Cancelada']
+};
+
+function renderSolicitudes() {
+    const q = normalizar(document.getElementById('buscarSolicitud').value);
+    const filtro = document.getElementById('filtroSolicitud').value;
+    const lista = solicitudes.filter(s => (!filtro || s.estado === filtro) &&
+        (!q || normalizar([s.auto?.placa, s.auto?.marca, s.auto?.modelo, nombreCliente(s.cliente), s.descripcion].join(' ')).includes(q)));
+    document.getElementById('countSolicitudes').textContent = solicitudes.filter(s => s.estado === 'PENDIENTE').length;
+
+    const tbody = document.getElementById('tablaSolicitudes');
+    if (!lista.length) {
+        tbody.innerHTML = filaVacia(8, 'bi-calendar-check', filtro === 'PENDIENTE' ? 'No hay solicitudes pendientes.' : 'No hay solicitudes para este filtro.');
+        return;
+    }
+    tbody.innerHTML = lista.map(s => {
+        const [cls, txt] = ESTADO_SOL[s.estado] || ['e-ingresado', s.estado];
+        const acciones = s.estado === 'PENDIENTE'
+            ? `<button class="btn-step" onclick="convertirSolicitud(${s.idSolicitud})" title="Crear la orden de trabajo"><i class="bi bi-clipboard-plus"></i> Crear orden</button>
+               <button class="btn-icon danger" title="Rechazar" aria-label="Rechazar" onclick="abrirRechazo(${s.idSolicitud})"><i class="bi bi-x-circle"></i></button>`
+            : (s.idOrden ? `<button class="btn-icon" title="Ver orden" onclick="abrirModalOrden(${s.idOrden})"><i class="bi bi-box-arrow-up-right"></i></button>` : '');
+        return `
+        <tr>
+            <td class="text-nowrap small">${fechaHoraCorta(s.fechaSolicitud)}</td>
+            <td>${esc(nombreCliente(s.cliente))}<div class="small text-muted-2">${esc(s.cliente?.telefono || '')}</div></td>
+            <td><span class="placa">${esc(s.auto?.placa)}</span><div class="small text-muted-2 mt-1 text-nowrap">${esc(s.auto?.marca)} ${esc(s.auto?.modelo)}</div></td>
+            <td class="text-nowrap">${fecha(s.fechaPreferida)}<div class="small text-muted-2">${esc(s.franja)}</div></td>
+            <td>${badgeTipo(s.tipoMantenimiento)}</td>
+            <td><div class="truncate" title="${esc(s.descripcion)}">${esc(s.descripcion)}</div>
+                ${s.respuesta ? `<div class="small text-muted-2 truncate" title="${esc(s.respuesta)}"><i class="bi bi-reply me-1"></i>${esc(s.respuesta)}</div>` : ''}</td>
+            <td><span class="estado ${cls}">${txt}</span></td>
+            <td class="text-end text-nowrap">${acciones}</td>
+        </tr>`;
+    }).join('');
+}
+
+function fechaHoraCorta(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return isNaN(d) ? iso : d.toLocaleString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function convertirSolicitud(id) {
+    const s = solicitudes.find(x => x.idSolicitud === id);
+    if (!s) return;
+    abrirModalOrden(null, s.auto.idAuto, {
+        tipo: s.tipoMantenimiento,
+        diagnostico: s.descripcion.slice(0, 200),
+        solicitudId: s.idSolicitud,
+        fecha: s.fechaPreferida >= hoyISO() ? s.fechaPreferida : hoyISO()
+    });
+}
+
+function abrirRechazo(id) {
+    const s = solicitudes.find(x => x.idSolicitud === id);
+    document.getElementById('rechazoId').value = id;
+    document.getElementById('rechazoMotivo').value = '';
+    document.getElementById('rechazoDetalle').innerHTML = `<b>${esc(nombreCliente(s.cliente))}</b> · ${esc(s.auto?.placa)} · ${fecha(s.fechaPreferida)} ${esc(s.franja)}<div class="mt-1">${esc(s.descripcion)}</div>`;
+    modal.rechazo.show();
+}
+
+async function confirmarRechazo(e) {
+    e.preventDefault();
+    const id = document.getElementById('rechazoId').value;
+    const motivo = document.getElementById('rechazoMotivo').value.trim();
+    try {
+        await api(`/api/solicitudes/${id}/rechazar?motivo=${encodeURIComponent(motivo)}`, { method: 'PATCH' });
+        modal.rechazo.hide();
+        toast('Solicitud rechazada; el cliente verá su mensaje');
+        await cargarTodo();
+    } catch (err) { toast(err.message, 'error'); }
+}
+
+/* =====================================================================
+   ACCESO DE CLIENTES AL PORTAL (solo admin)
+   ===================================================================== */
+function cuentaDeCliente(cedula) {
+    return usuarios.find(u => u.rol === 'ROLE_CLIENTE' && u.cliente?.cedula === cedula);
+}
+
+async function crearAcceso(cedula) {
+    const c = clientes.find(x => x.cedula === cedula);
+    const ok = await confirmar(`¿Crear acceso al portal para ${nombreCliente(c)}?`,
+        'Se generará una contraseña temporal. El usuario será su número de cédula.', 'Crear acceso');
+    if (!ok) return;
+    try {
+        const r = await api(`/api/clientes/${encodeURIComponent(cedula)}/acceso`, { method: 'POST' });
+        document.getElementById('accesoCliente').innerHTML = `Cuenta creada para <b>${esc(nombreCliente(c))}</b>.`;
+        document.getElementById('accesoUsuario').textContent = r.username;
+        document.getElementById('accesoPassword').textContent = r.passwordTemporal;
+        const wa = document.getElementById('accesoWhatsapp');
+        let tel = String(c.telefono || '').replace(/\D/g, '');
+        if (tel.startsWith('0')) tel = '593' + tel.slice(1);
+        if (tel.length >= 11) {
+            const msg = `Hola ${c.nombre}, ya puede consultar su vehículo en el portal de ${TALLER.nombre}. ` +
+                `Usuario: ${r.username} · Contraseña temporal: ${r.passwordTemporal}. Le recomendamos cambiarla en "Mi perfil".`;
+            wa.href = `https://wa.me/${tel}?text=${encodeURIComponent(msg)}`;
+            wa.classList.remove('d-none');
+        } else {
+            wa.classList.add('d-none');
+        }
+        modal.acceso.show();
+        await cargarTodo();
+    } catch (err) { toast(err.message, 'error'); }
+}
+
+function copiarAcceso() {
+    const texto = `Usuario: ${document.getElementById('accesoUsuario').textContent}\nContraseña temporal: ${document.getElementById('accesoPassword').textContent}`;
+    navigator.clipboard?.writeText(texto).then(() => toast('Credenciales copiadas'), () => toast('No se pudo copiar', 'error'));
+}
+
+async function quitarAcceso(cedula) {
+    const c = clientes.find(x => x.cedula === cedula);
+    const ok = await confirmar(`¿Quitar el acceso de ${nombreCliente(c)}?`, 'Ya no podrá ingresar al portal (sus datos no se borran).', 'Quitar acceso');
+    if (!ok) return;
+    try {
+        await api(`/api/clientes/${encodeURIComponent(cedula)}/acceso`, { method: 'DELETE' });
+        toast('Acceso eliminado');
+        await cargarTodo();
+    } catch (err) { toast(err.message, 'error'); }
+}
+
+/* =====================================================================
+   AUDITORÍA (solo admin)
+   ===================================================================== */
+let auditoria = [];
+
+async function buscarAuditoria() {
+    const p = new URLSearchParams();
+    const filtros = { desde: 'audDesde', hasta: 'audHasta', usuario: 'audUsuario', accion: 'audAccion', entidad: 'audEntidad', texto: 'audTexto' };
+    Object.entries(filtros)
+        .forEach(([k, id]) => { const v = document.getElementById(id).value.trim(); if (v) p.append(k, v); });
+    try {
+        auditoria = await api('/api/auditoria?' + p);
+        renderAuditoria();
+    } catch (e) { toast(e.message, 'error'); }
+}
+
+const ENTIDAD_TXT = { Vehiculo: 'Vehículo', Sesion: 'Sesión' };
+
+function renderAuditoria() {
+    document.getElementById('audResumen').textContent =
+        `${auditoria.length} ${auditoria.length === 1 ? 'registro' : 'registros'}${auditoria.length >= 1000 ? ' (se muestran los 1000 más recientes; acote el rango)' : ''}`;
+    const tbody = document.getElementById('tablaAuditoria');
+    if (!auditoria.length) { tbody.innerHTML = filaVacia(6, 'bi-journal-text', 'Sin registros para estos filtros.'); return; }
+    tbody.innerHTML = auditoria.map(a => `
+        <tr>
+            <td class="text-nowrap small">${fechaHoraCorta(a.fecha)}</td>
+            <td><span class="fw-semibold">${esc(a.usuario)}</span>${a.rol ? `<div class="small text-muted-2">${esc(a.rol.toLowerCase())}</div>` : ''}</td>
+            <td><span class="acc acc-${esc(a.accion)}">${esc(a.accion.replace('_', ' '))}</span></td>
+            <td>${esc(ENTIDAD_TXT[a.entidad] || a.entidad)}</td>
+            <td><span class="codigo">${esc(a.entidadId || '—')}</span></td>
+            <td class="small">${esc(a.descripcion || '')}</td>
+        </tr>`).join('');
+}
+
+function imprimirAuditoria() {
+    if (!auditoria.length) { toast('Primero realice una búsqueda', 'error'); return; }
+    const filas = auditoria.map(a => `<tr><td>${fechaHoraCorta(a.fecha)}</td><td>${esc(a.usuario)}</td><td>${esc(a.accion)}</td>
+        <td>${esc(ENTIDAD_TXT[a.entidad] || a.entidad)}</td><td>${esc(a.entidadId || '')}</td><td>${esc(a.descripcion || '')}</td></tr>`).join('');
+    const rango = `${fecha(document.getElementById('audDesde').value)} – ${fecha(document.getElementById('audHasta').value)}`;
+    abrirVentanaImpresion('Auditoría', `${encabezadoDocumento('Registro de auditoría', rango)}
+        <table><thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Módulo</th><th>Ref.</th><th>Detalle</th></tr></thead><tbody>${filas}</tbody></table>
+        <div class="pie">${auditoria.length} registros · generado por ${esc(NOMBRE_USUARIO)}</div>`);
+}
+
+/* =====================================================================
+   INICIO
+   ===================================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+    modal.auto = new bootstrap.Modal('#modalAuto');
+    modal.estado = new bootstrap.Modal('#modalEstado');
+    modal.historial = new bootstrap.Modal('#modalHistorial');
+    modal.orden = new bootstrap.Modal('#modalOrden');
+    modal.cliente = new bootstrap.Modal('#modalCliente');
+    modal.confirmar = new bootstrap.Modal('#modalConfirmar');
+    if (ES_ADMIN) modal.usuario = new bootstrap.Modal('#modalUsuario');
+    modal.rechazo = new bootstrap.Modal('#modalRechazo');
+    if (ES_ADMIN) {
+        modal.acceso = new bootstrap.Modal('#modalAcceso');
+        document.getElementById('audHasta').value = hoyISO();
+        document.getElementById('audDesde').value = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+        document.getElementById('tab-auditoria-btn').addEventListener('shown.bs.tab', () => { if (!auditoria.length) buscarAuditoria(); });
+        modal.repuesto = new bootstrap.Modal('#modalRepuesto');
+        modal.stock = new bootstrap.Modal('#modalStock');
+        rangoReporte('mes', false);
+        document.getElementById('tab-reportes-btn').addEventListener('shown.bs.tab', () => { if (!ultimoReporte) generarReporte(); });
+    }
+    toastInstance = new bootstrap.Toast('#toast', { delay: 3500 });
+    document.getElementById('ordenAuto').addEventListener('change', sugerirKmOrden);
+
+    // Si se cierra el modal de cliente abierto desde el de vehículo, volver al vehículo
+    document.getElementById('modalCliente').addEventListener('hidden.bs.modal', () => {
+        if (clienteDesdeModalAuto) { clienteDesdeModalAuto = false; modal.auto.show(); }
+    });
+
+    document.getElementById('ordenEstado').addEventListener('change', actualizarPreviewEstado);
+
+    // Encabezado
+    const hoy = new Date().toLocaleDateString('es-EC', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    document.getElementById('fechaHoy').textContent = hoy.charAt(0).toUpperCase() + hoy.slice(1);
+    const iniciales = String(NOMBRE_USUARIO || USERNAME).split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase();
+    document.getElementById('avatarIniciales').textContent = iniciales || 'U';
+
+    cargarTodo();
+});
+</script>
+</body>
+</html>

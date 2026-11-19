@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar sesión · Taller Mecánico</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --olive: #6B8E5A;
+            --olive-600: #5A7A4A;
+            --olive-700: #4E6B40;
+            --olive-900: #2F3F27;
+            --beige: #EADCC8;
+            --beige-100: #F6F0E7;
+            --beige-50: #FBF8F3;
+            --ink: #2B2A26;
+            --muted: #6E6A60;
+            --border: #E3D6C2;
+        }
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            color: var(--ink);
+            background: var(--beige-100);
+        }
+        /* Panel de marca (izquierda) */
+        .brand-panel {
+            background: var(--olive-900);
+            color: var(--beige);
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+        .brand-panel::after {
+            content: "";
+            position: absolute;
+            width: 420px; height: 420px;
+            border-radius: 50%;
+            background: var(--olive);
+            opacity: .35;
+            right: -140px; bottom: -140px;
+        }
+        .brand-logo {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            background: var(--olive);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; color: var(--beige-50);
+        }
+        .brand-title {
+            font-family: "DM Serif Display", Georgia, serif;
+            font-size: 3rem;
+            line-height: 1.05;
+            color: var(--beige-50);
+        }
+        .brand-features li { margin-bottom: .6rem; color: var(--beige); opacity: .9; }
+        .brand-features i { color: #A9C49A; }
+
+        /* Formulario (derecha) */
+        .form-panel {
+            display: flex; align-items: center; justify-content: center;
+            padding: 2rem;
+        }
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+        }
+        .login-card h1 {
+            font-family: "DM Serif Display", Georgia, serif;
+            font-size: 2rem;
+        }
+        .form-label { font-weight: 600; font-size: .85rem; color: var(--ink); }
+        .input-group-text {
+            background: var(--beige-50);
+            border-color: var(--border);
+            color: var(--muted);
+        }
+        .form-control {
+            border-color: var(--border);
+            padding: .7rem .9rem;
+            background: #fff;
+        }
+        .form-control:focus {
+            border-color: var(--olive);
+            box-shadow: 0 0 0 .2rem rgba(107, 142, 90, .25);
+        }
+        .btn-olive {
+            background: var(--olive-600);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            padding: .75rem;
+        }
+        .btn-olive:hover, .btn-olive:focus { background: var(--olive-700); color: #fff; }
+        .demo-box {
+            background: var(--beige-50);
+            border: 1px dashed var(--border);
+            border-radius: .75rem;
+        }
+        .demo-item {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: .5rem;
+            cursor: pointer;
+            transition: border-color .15s;
+        }
+        .demo-item:hover { border-color: var(--olive); }
+        .chip {
+            font-size: .7rem; font-weight: 700; letter-spacing: .3px;
+            padding: .2rem .5rem; border-radius: 999px;
+        }
+        .chip-admin { background: var(--olive-900); color: var(--beige-50); }
+        .chip-mec { background: var(--beige); color: var(--olive-900); }
+        .text-muted-2 { color: var(--muted); }
+        .chip-cli { background: #DDE7EE; color: #2F5872; }
+        .cliente-box { display: flex; gap: .75rem; align-items: flex-start; background: #fff; border: 1px solid var(--border); border-radius: .75rem; padding: .8rem 1rem; }
+        .cliente-box > i { font-size: 1.3rem; color: var(--olive-700); }
+        .link-olive { color: var(--olive-700); font-weight: 600; text-decoration: none; }
+        .link-olive:hover { text-decoration: underline; color: var(--olive-900); }
+
+        @media (max-width: 900px) {
+            body { grid-template-columns: 1fr; }
+            .brand-panel { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Panel de marca -->
+<aside class="brand-panel">
+    <div class="d-flex align-items-center gap-2 position-relative" style="z-index:1">
+        <span class="brand-logo"><i class="bi bi-wrench-adjustable"></i></span>
+        <span class="fw-semibold">Taller Mecánico</span>
+    </div>
+
+    <div class="position-relative" style="z-index:1">
+        <div class="brand-title mb-3">Cada vehículo,<br>bajo control.</div>
+        <ul class="list-unstyled brand-features">
+            <li><i class="bi bi-check2-circle me-2"></i>Recepción y estado de vehículos en tiempo real</li>
+            <li><i class="bi bi-check2-circle me-2"></i>Órdenes de trabajo con repuestos y mano de obra</li>
+            <li><i class="bi bi-check2-circle me-2"></i>Historial completo por placa y cliente</li>
+        </ul>
+    </div>
+
+    <small class="position-relative" style="z-index:1; opacity:.7">Grupo 04 · Proyecto SOA</small>
+</aside>
+
+<!-- Formulario -->
+<main class="form-panel">
+    <div class="login-card">
+        <h1 class="mb-1">Bienvenido</h1>
+        <p class="text-muted-2 mb-4">Ingrese sus credenciales para continuar.</p>
+
+        <div th:if="${param.error}" class="alert alert-danger d-flex align-items-center gap-2 py-2 small" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            Usuario o contraseña incorrectos.
+        </div>
+        <div th:if="${param.logout}" class="alert alert-success d-flex align-items-center gap-2 py-2 small" role="alert">
+            <i class="bi bi-check-circle-fill"></i>
+            Sesión cerrada correctamente.
+        </div>
+        <div th:if="${param.registrado}" class="alert alert-success d-flex align-items-center gap-2 py-2 small" role="alert">
+            <i class="bi bi-person-check-fill"></i>
+            <span>Cuenta creada. Ingrese con su cédula y su contraseña.
+                <span th:if="${param.vinculado}"> Encontramos su historial en el taller y ya está vinculado a su cuenta.</span></span>
+        </div>
+        <div th:if="${param.expirada}" class="alert alert-warning d-flex align-items-center gap-2 py-2 small" role="alert">
+            <i class="bi bi-clock-history"></i>
+            Su sesión expiró. Vuelva a ingresar.
+        </div>
+
+        <form th:action="@{/login}" method="post">
+            <div class="mb-3">
+                <label for="username" class="form-label">Usuario <span class="text-muted-2 fw-normal">(clientes: su cédula)</span></label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                    <input type="text" id="username" name="username" class="form-control"
+                           placeholder="Ej. admin" autocomplete="username" required autofocus>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="password" class="form-label">Contraseña</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input type="password" id="password" name="password" class="form-control"
+                           placeholder="••••••••" autocomplete="current-password" required>
+                    <button type="button" class="input-group-text" onclick="togglePassword()" aria-label="Mostrar contraseña">
+                        <i class="bi bi-eye" id="iconoPassword"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-olive w-100 d-flex align-items-center justify-content-center gap-2">
+                Ingresar <i class="bi bi-arrow-right"></i>
+            </button>
+        </form>
+
+        <div class="cliente-box mt-3">
+            <i class="bi bi-car-front"></i>
+            <div class="small">
+                <b>¿Es cliente?</b> Cree su cuenta gratis y siga el estado de su vehículo, su historial y sus citas.
+                <a th:href="@{/registro}" class="link-olive">Crear mi cuenta</a>
+            </div>
+        </div>
+
+        <!-- Credenciales de demostración (se desactiva con app.demo.mostrar-credenciales=false) -->
+        <div th:if="${mostrarDemo}" class="demo-box p-3 mt-4">
+            <div class="small fw-semibold mb-2"><i class="bi bi-info-circle me-1"></i>Cuentas de demostración</div>
+            <div class="d-flex flex-column gap-2">
+                <div class="demo-item p-2 d-flex justify-content-between align-items-center"
+                     onclick="fillCredentials('admin', 'admin123')">
+                    <span><span class="chip chip-admin me-2">ADMIN</span><code class="text-dark">admin</code></span>
+                    <code class="text-muted-2">admin123</code>
+                </div>
+                <div class="demo-item p-2 d-flex justify-content-between align-items-center"
+                     onclick="fillCredentials('mecanico', 'mecanico123')">
+                    <span><span class="chip chip-mec me-2">MECÁNICO</span><code class="text-dark">mecanico</code></span>
+                    <code class="text-muted-2">mecanico123</code>
+                </div>
+                <div class="demo-item p-2 d-flex justify-content-between align-items-center"
+                     onclick="fillCredentials('cliente', 'cliente123')">
+                    <span><span class="chip chip-cli me-2">CLIENTE</span><code class="text-dark">cliente</code></span>
+                    <code class="text-muted-2">cliente123</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    function fillCredentials(user, pass) {
+        document.getElementById('username').value = user;
+        document.getElementById('password').value = pass;
+    }
+    function togglePassword() {
+        const input = document.getElementById('password');
+        const icono = document.getElementById('iconoPassword');
+        const oculto = input.type === 'password';
+        input.type = oculto ? 'text' : 'password';
+        icono.className = oculto ? 'bi bi-eye-slash' : 'bi bi-eye';
+    }
+</script>
+</body>
+</html>

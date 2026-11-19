@@ -1,0 +1,24 @@
+# Compilación
+target/
+*.class
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Herramientas locales
+weppy-project-sync/
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.log
+
+# Script de subida
+subir_a_github.bat
+commit_msg.txt
+subida_git.log

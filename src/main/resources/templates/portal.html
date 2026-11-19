@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi portal · Taller Mecánico</title>
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* =========================================================
+           PALETA: Olive + Beige
+           ========================================================= */
+        :root {
+            --olive: #6B8E5A;        /* acento, íconos, foco */
+            --olive-600: #5A7A4A;    /* botones (contraste AA con blanco) */
+            --olive-700: #4E6B40;    /* hover */
+            --olive-900: #2F3F27;    /* navbar, títulos fuertes */
+            --olive-50: #EEF3EA;
+            --beige: #EADCC8;
+            --beige-100: #F6F0E7;    /* fondo de página */
+            --beige-50: #FBF8F3;     /* fondos suaves */
+            --ink: #2B2A26;          /* texto principal */
+            --muted: #6E6A60;        /* texto secundario */
+            --border: #E3D6C2;
+            --danger: #A94438;
+            --danger-50: #F6E4E1;
+            --radius: .9rem;
+        }
+
+        body {
+            background: var(--beige-100);
+            font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            color: var(--ink);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .text-muted-2 { color: var(--muted) !important; }
+        .font-serif { font-family: "DM Serif Display", Georgia, serif; font-weight: 400; }
+
+        /* ---------- Navbar ---------- */
+        .topbar {
+            background: var(--olive-900);
+            color: var(--beige);
+        }
+        .brand-logo {
+            width: 38px; height: 38px; border-radius: 10px;
+            background: var(--olive);
+            display: inline-flex; align-items: center; justify-content: center;
+            color: var(--beige-50); font-size: 1.15rem;
+        }
+        .brand-name { font-family: "DM Serif Display", Georgia, serif; font-size: 1.35rem; color: var(--beige-50); line-height: 1; }
+        .brand-sub { font-size: .72rem; color: var(--beige); opacity: .75; letter-spacing: .3px; }
+        .avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: var(--beige); color: var(--olive-900);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: .8rem;
+        }
+        .role-chip {
+            font-size: .68rem; font-weight: 700; letter-spacing: .4px;
+            padding: .15rem .5rem; border-radius: 999px;
+            background: rgba(234, 220, 200, .15); color: var(--beige);
+            border: 1px solid rgba(234, 220, 200, .35);
+        }
+        .btn-logout {
+            color: var(--beige); border: 1px solid rgba(234, 220, 200, .4);
+            font-size: .85rem;
+        }
+        .btn-logout:hover { background: var(--beige); color: var(--olive-900); }
+
+        /* ---------- Botones ---------- */
+        .btn-olive { background: var(--olive-600); color: #fff; border: none; font-weight: 600; }
+        .btn-olive:hover, .btn-olive:focus, .btn-olive:active { background: var(--olive-700) !important; color: #fff !important; }
+        .btn-soft {
+            background: #fff; color: var(--ink); border: 1px solid var(--border); font-weight: 500;
+        }
+        .btn-soft:hover { background: var(--beige-50); border-color: var(--olive); color: var(--olive-900); }
+        .btn-danger-soft { background: var(--danger); color: #fff; border: none; font-weight: 600; }
+        .btn-danger-soft:hover { background: #8F372D; color: #fff; }
+
+        .btn-icon {
+            width: 32px; height: 32px; padding: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: .5rem; border: 1px solid transparent;
+            background: transparent; color: var(--muted);
+            transition: all .15s;
+        }
+        .btn-icon:hover { background: var(--olive-50); color: var(--olive-900); border-color: var(--border); }
+        .btn-icon.danger:hover { background: var(--danger-50); color: var(--danger); }
+        .btn-step {
+            font-size: .78rem; font-weight: 600; padding: .25rem .6rem; border-radius: .5rem;
+            background: var(--olive-50); color: var(--olive-900); border: 1px solid #CFDDC6;
+        }
+        .btn-step:hover { background: var(--olive-600); color: #fff; border-color: var(--olive-600); }
+
+        /* ---------- Formularios ---------- */
+        .form-control, .form-select { border-color: var(--border); }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--olive);
+            box-shadow: 0 0 0 .2rem rgba(107, 142, 90, .22);
+        }
+        .form-label { font-size: .8rem; font-weight: 600; color: var(--ink); margin-bottom: .3rem; }
+        .input-group-text { background: var(--beige-50); border-color: var(--border); color: var(--muted); }
+        .form-hint { font-size: .75rem; color: var(--muted); }
+
+        /* ---------- Encabezado de página ---------- */
+        .page-title { font-family: "DM Serif Display", Georgia, serif; font-size: 2rem; color: var(--olive-900); }
+
+        /* ---------- KPIs ---------- */
+        .kpi {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.1rem 1.2rem;
+            display: flex; gap: 1rem; align-items: center;
+            width: 100%; height: 100%; text-align: left;
+            transition: border-color .15s, box-shadow .15s, transform .15s;
+        }
+        .kpi:hover { border-color: var(--olive); box-shadow: 0 6px 18px rgba(47, 63, 39, .08); transform: translateY(-1px); }
+        .kpi:focus-visible { outline: 3px solid rgba(107, 142, 90, .4); }
+        .kpi-icon {
+            width: 48px; height: 48px; flex-shrink: 0; border-radius: .75rem;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--beige-100); color: var(--olive-700); font-size: 1.35rem;
+        }
+        .kpi-label { font-size: .75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+        .kpi-value { font-size: 1.75rem; font-weight: 700; line-height: 1.1; color: var(--ink); }
+        .kpi-caption { font-size: .78rem; color: var(--muted); }
+        .kpi-link { font-size: .75rem; color: var(--olive-700); font-weight: 600; margin-left: auto; align-self: flex-end; white-space: nowrap; }
+
+        /* ---------- Tarjeta principal + tabs ---------- */
+        .panel {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+        .panel-tabs { border-bottom: 1px solid var(--border); padding: 0 1.25rem; gap: .25rem; }
+        .panel-tabs .nav-link {
+            border: none; border-bottom: 3px solid transparent; border-radius: 0;
+            color: var(--muted); font-weight: 600; font-size: .92rem;
+            padding: 1rem .9rem .85rem;
+            display: flex; align-items: center; gap: .5rem;
+        }
+        .panel-tabs .nav-link:hover { color: var(--olive-900); }
+        .panel-tabs .nav-link.active { color: var(--olive-900); border-bottom-color: var(--olive); background: transparent; }
+        .tab-count {
+            font-size: .7rem; font-weight: 700; padding: .1rem .45rem; border-radius: 999px;
+            background: var(--beige-100); color: var(--muted);
+        }
+        .nav-link.active .tab-count { background: var(--olive-50); color: var(--olive-700); }
+
+        /* ---------- Tablas ---------- */
+        .table-taller { margin: 0; }
+        .table-taller thead th {
+            background: var(--beige-50);
+            color: var(--muted);
+            font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+            border-bottom: 1px solid var(--border);
+            padding: .75rem 1rem; white-space: nowrap;
+        }
+        .table-taller tbody td { padding: .8rem 1rem; border-color: #EFE6D8; vertical-align: middle; font-size: .9rem; }
+        .table-taller tbody tr:hover td { background: var(--beige-50); }
+        .table-wrap { border: 1px solid var(--border); border-radius: .75rem; overflow: hidden; }
+
+        .placa {
+            display: inline-block;
+            font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+            font-weight: 700; font-size: .82rem; letter-spacing: 1px;
+            padding: .2rem .55rem; border-radius: .35rem;
+            background: #fff; color: var(--ink);
+            border: 1.5px solid var(--ink);
+            border-top: 4px solid var(--olive);
+            white-space: nowrap;
+        }
+        .codigo { font-family: ui-monospace, Consolas, monospace; font-weight: 600; color: var(--olive-900); font-size: .85rem; white-space: nowrap; }
+        .truncate { max-width: 230px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        #modalHistorial .truncate { max-width: 170px; }
+        .monto { font-weight: 700; color: var(--ink); white-space: nowrap; }
+
+        /* ---------- Badges de estado ---------- */
+        .estado {
+            display: inline-flex; align-items: center; gap: .35rem;
+            font-size: .75rem; font-weight: 600; padding: .25rem .6rem; border-radius: 999px; white-space: nowrap;
+        }
+        .estado::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+        .e-ingresado  { background: #EFE8DC; color: #5C564B; }
+        .e-diagnostico{ background: #F7E7C6; color: #7A5410; }
+        .e-reparacion { background: #DDE7EE; color: #2F5872; }
+        .e-listo      { background: #DCE8D3; color: #3F5634; }
+        .e-entregado  { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+        .e-pendiente  { background: #F7E7C6; color: #7A5410; }
+        .e-proceso    { background: #DDE7EE; color: #2F5872; }
+        .e-finalizado { background: #DCE8D3; color: #3F5634; }
+
+        .tipo { font-size: .72rem; font-weight: 600; padding: .15rem .5rem; border-radius: .35rem; border: 1px solid; }
+        .t-preventivo { color: var(--olive-700); border-color: #C5D6BA; background: var(--olive-50); }
+        .t-correctivo { color: var(--danger); border-color: #E6C4BE; background: var(--danger-50); }
+
+        .link-chip {
+            font-size: .78rem; font-weight: 600; padding: .2rem .55rem; border-radius: 999px;
+            background: var(--beige-100); color: var(--olive-900); border: none;
+        }
+        .link-chip:hover { background: var(--beige); }
+
+        .empty {
+            text-align: center; padding: 3rem 1rem; color: var(--muted);
+        }
+        .empty i { font-size: 2rem; color: var(--beige); display: block; margin-bottom: .5rem; }
+
+        /* ---------- Modales ---------- */
+        .modal-content { border: none; border-radius: var(--radius); }
+        .modal-header { border-bottom: 1px solid var(--border); background: var(--beige-50); border-radius: var(--radius) var(--radius) 0 0; }
+        .modal-title { font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 1.4rem; color: var(--olive-900); }
+        .modal-footer { border-top: 1px solid var(--border); }
+        .section-title { font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: .6rem; }
+        .vehiculo-box { background: var(--beige-50); border: 1px solid var(--border); border-radius: .6rem; padding: .7rem .9rem; }
+
+        .detalle-table td, .detalle-table th { padding: .45rem .5rem; font-size: .85rem; vertical-align: middle; }
+        .detalle-table thead th { background: var(--beige-50); color: var(--muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .4px; }
+        .totales { background: var(--beige-50); border: 1px solid var(--border); border-radius: .6rem; padding: .8rem 1rem; }
+        .totales .total { font-size: 1.35rem; font-weight: 700; color: var(--olive-900); }
+
+        /* ---------- Toast ---------- */
+        .toast-container { z-index: 1090; }
+        .toast { border: none; border-radius: .7rem; }
+        .toast.ok { background: var(--olive-900); color: var(--beige-50); }
+        .toast.error { background: var(--danger); color: #fff; }
+
+        footer { color: var(--muted); font-size: .78rem; }
+
+        /* ---------- Alertas bajo los KPIs ---------- */
+        .alerta {
+            display: inline-flex; align-items: center; gap: .5rem;
+            font-size: .85rem; font-weight: 500; padding: .5rem .85rem; border-radius: .6rem;
+            border: 1px solid; background: #fff; cursor: pointer;
+        }
+        .alerta:hover { filter: brightness(.97); }
+        .alerta-roja { color: var(--danger); border-color: #E6C4BE; background: var(--danger-50); }
+        .alerta-ambar { color: #7A5410; border-color: #EBD3A0; background: #FBF1DC; }
+
+        /* ---------- Inventario ---------- */
+        .stock { font-weight: 700; white-space: nowrap; }
+        .stock-bajo { color: var(--danger); }
+        .stock-ok { color: var(--olive-700); }
+        .barra-stock { height: 5px; border-radius: 3px; background: var(--beige-100); overflow: hidden; width: 90px; margin-top: 4px; }
+        .barra-stock > span { display: block; height: 100%; background: var(--olive); }
+        .barra-stock.baja > span { background: var(--danger); }
+        .resumen-mini { background: var(--beige-50); border: 1px solid var(--border); border-radius: .6rem; padding: .45rem .8rem; font-size: .82rem; color: var(--muted); }
+        .resumen-mini b { color: var(--ink); }
+
+        /* ---------- Recordatorios ---------- */
+        .e-vencido  { background: var(--danger-50); color: var(--danger); }
+        .e-proximo  { background: #F7E7C6; color: #7A5410; }
+        .e-aldia    { background: #DCE8D3; color: #3F5634; }
+        .e-sinhist  { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+        .btn-wa { color: #1E7B4A; }
+        .btn-wa:hover { background: #E3F3EA; color: #1E7B4A; }
+
+        /* ---------- Reportes ---------- */
+        .rep-kpi { background: var(--beige-50); border: 1px solid var(--border); border-radius: .75rem; padding: .9rem 1rem; height: 100%; }
+        .rep-kpi .v { font-size: 1.45rem; font-weight: 700; color: var(--ink); }
+        .rep-kpi .l { font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+        .rep-card { border: 1px solid var(--border); border-radius: .75rem; padding: 1rem 1.1rem; height: 100%; }
+        .rep-card h6 { font-weight: 700; font-size: .9rem; color: var(--olive-900); margin-bottom: .8rem; }
+        .barra-h { display: grid; grid-template-columns: 1fr auto; column-gap: .6rem; row-gap: .25rem; align-items: center; font-size: .84rem; margin-bottom: .7rem; }
+        .barra-h .track { grid-column: 1 / -1; grid-row: 2; }
+        .barra-h .track { height: 10px; background: var(--beige-100); border-radius: 5px; overflow: hidden; }
+        .barra-h .track span { display: block; height: 100%; background: var(--olive); border-radius: 5px; }
+        .barra-h .etq { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .chart-dias { display: flex; align-items: flex-end; gap: 4px; height: 160px; padding-top: .5rem; border-bottom: 1px solid var(--border); }
+        .chart-dias .col-bar { flex: 1; min-width: 6px; background: var(--olive); border-radius: 4px 4px 0 0; position: relative; }
+        .chart-dias .col-bar:hover { background: var(--olive-700); }
+        .split { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: var(--beige-100); }
+        .split span { display: block; height: 100%; }
+        .leyenda i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: .35rem; vertical-align: middle; }
+        .chip-rango { font-size: .8rem; }
+    
+        /* ---------- Portal ---------- */
+        .aviso { display: flex; align-items: center; gap: .75rem; padding: .75rem 1rem; border-radius: .75rem; border: 1px solid; font-size: .9rem; }
+        .aviso > i { font-size: 1.2rem; }
+        .aviso-ok { background: #EEF3EA; border-color: #C5D6BA; color: #2F3F27; }
+        .aviso-ambar { background: #FBF1DC; border-color: #EBD3A0; color: #5E420C; }
+        .aviso-rojo { background: var(--danger-50); border-color: #E6C4BE; color: #7E2F26; }
+        .vehiculo-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.4rem; background: #fff; }
+        .stepper { display: grid; grid-template-columns: repeat(5, 1fr); position: relative; }
+        .stepper::before { content: ""; position: absolute; top: 17px; left: 10%; right: 10%; height: 3px; background: var(--beige); z-index: 0; }
+        .paso { display: flex; flex-direction: column; align-items: center; gap: .35rem; position: relative; z-index: 1; text-align: center; }
+        .paso .punto { width: 36px; height: 36px; border-radius: 50%; background: #fff; border: 2px solid var(--beige); color: var(--muted);
+                       display: flex; align-items: center; justify-content: center; }
+        .paso .txt { font-size: .75rem; color: var(--muted); font-weight: 600; }
+        .paso.hecho .punto { background: var(--olive); border-color: var(--olive); color: #fff; }
+        .paso.actual .punto { background: var(--olive-900); border-color: var(--olive-900); color: #fff; box-shadow: 0 0 0 5px rgba(107,142,90,.25); }
+        .paso.actual .txt { color: var(--olive-900); }
+        .orden-actual { background: var(--beige-50); border: 1px solid var(--border); border-radius: .75rem; padding: 1rem 1.1rem; }
+        .hist-item { border: 1px solid var(--border); border-radius: .75rem; padding: .9rem 1.1rem; background: #fff; }
+        .hist-item.reciente { border-color: var(--olive); box-shadow: 0 0 0 3px rgba(107,142,90,.12); }
+        .chip-reciente { font-size: .7rem; font-weight: 700; padding: .2rem .55rem; border-radius: 999px; background: var(--olive-900); color: var(--beige-50); }
+        .empty .btn i { font-size: inherit; display: inline; color: inherit; margin: 0; }
+        .fuera-taller { display: flex; align-items: center; gap: .5rem; color: var(--muted); font-size: .9rem;
+                        background: var(--beige-50); border: 1px dashed var(--border); border-radius: .6rem; padding: .6rem .9rem; }
+        .fuera-taller i { color: var(--olive-700); font-size: 1.1rem; }
+        .respuesta { background: var(--beige-50); border-radius: .5rem; padding: .45rem .7rem; }
+        .link-olive { color: var(--olive-700); font-weight: 600; text-decoration: none; }
+        .link-olive:hover { color: var(--olive-900); text-decoration: underline; }
+        @media (max-width: 576px) { .paso .txt { font-size: .62rem; } }
+    </style>
+</head>
+<body>
+
+<header class="topbar sticky-top">
+    <div class="container-xxl px-4 py-2 d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2">
+            <span class="brand-logo"><i class="bi bi-wrench-adjustable"></i></span>
+            <div>
+                <div class="brand-name" th:text="${tallerNombre}">Taller Mecánico</div>
+                <div class="brand-sub">Portal del cliente</div>
+            </div>
+        </div>
+        <div class="ms-auto d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <span class="avatar" id="avatarIniciales">U</span>
+                <div class="d-none d-sm-block lh-sm">
+                    <div class="fw-semibold small text-white" th:text="${nombreUsuario}">Cliente</div>
+                    <span class="role-chip">CLIENTE</span>
+                </div>
+            </div>
+            <form th:action="@{/logout}" method="post" class="m-0">
+                <button type="submit" class="btn btn-sm btn-logout d-flex align-items-center gap-1">
+                    <i class="bi bi-box-arrow-right"></i><span class="d-none d-md-inline">Salir</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<main class="container-xxl px-4 py-4 flex-grow-1">
+    <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+        <div>
+            <div class="text-muted-2 small" id="fechaHoy"></div>
+            <h1 class="page-title mb-0">Hola, <span id="saludoNombre" th:text="${nombreUsuario}">Cliente</span></h1>
+        </div>
+        <button class="btn btn-olive btn-sm" onclick="irASolicitar()"><i class="bi bi-calendar-plus me-1"></i>Solicitar servicio</button>
+    </div>
+
+    <!-- Avisos importantes -->
+    <div id="avisos" class="d-flex flex-column gap-2 mb-4"></div>
+
+    <section class="panel">
+        <ul class="nav panel-tabs" role="tablist">
+            <li class="nav-item"><button class="nav-link active" id="tab-vehiculos-btn" data-bs-toggle="tab" data-bs-target="#tab-vehiculos" type="button"><i class="bi bi-car-front"></i>Mis vehículos <span class="tab-count" id="countVehiculos">0</span></button></li>
+            <li class="nav-item"><button class="nav-link" id="tab-historial-btn" data-bs-toggle="tab" data-bs-target="#tab-historial" type="button"><i class="bi bi-clock-history"></i>Historial <span class="tab-count" id="countHistorial">0</span></button></li>
+            <li class="nav-item"><button class="nav-link" id="tab-solicitudes-btn" data-bs-toggle="tab" data-bs-target="#tab-solicitudes" type="button"><i class="bi bi-calendar-check"></i>Citas y solicitudes <span class="tab-count" id="countSolicitudes">0</span></button></li>
+            <li class="nav-item"><button class="nav-link" id="tab-perfil-btn" data-bs-toggle="tab" data-bs-target="#tab-perfil" type="button"><i class="bi bi-person"></i>Mi perfil</button></li>
+        </ul>
+
+        <div class="tab-content p-3 p-md-4">
+
+            <!-- ============ MIS VEHÍCULOS ============ -->
+            <div class="tab-pane fade show active" id="tab-vehiculos">
+                <div class="d-flex justify-content-end mb-3">
+                    <button class="btn btn-soft btn-sm" onclick="abrirModalVehiculo()"><i class="bi bi-plus-lg me-1"></i>Agregar vehículo</button>
+                </div>
+                <div id="listaVehiculos" class="d-flex flex-column gap-4"><div class="empty">Cargando…</div></div>
+            </div>
+
+            <!-- ============ HISTORIAL ============ -->
+            <div class="tab-pane fade" id="tab-historial">
+                <div class="row g-2 mb-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label" for="hVehiculo">Vehículo</label>
+                        <select id="hVehiculo" class="form-select" onchange="renderHistorial()"></select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label" for="hTipo">Tipo</label>
+                        <select id="hTipo" class="form-select" onchange="renderHistorial()">
+                            <option value="">Todos</option><option>Preventivo</option><option>Correctivo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label" for="hEstado">Estado</label>
+                        <select id="hEstado" class="form-select" onchange="renderHistorial()">
+                            <option value="">Todos</option><option>Pendiente</option><option>En Proceso</option><option>Finalizado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label" for="hDesde">Desde</label>
+                        <input type="date" id="hDesde" class="form-control" onchange="renderHistorial()">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label" for="hHasta">Hasta</label>
+                        <input type="date" id="hHasta" class="form-control" onchange="renderHistorial()">
+                    </div>
+                    <div class="col-md-1 d-grid">
+                        <button class="btn btn-soft" onclick="limpiarFiltrosHistorial()" title="Limpiar filtros"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                    <div class="col-12">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="search" id="hTexto" class="form-control" placeholder="Buscar en diagnóstico, trabajos o repuestos…" oninput="renderHistorial()">
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mb-3" id="historialResumen"></div>
+                <div id="listaHistorial" class="d-flex flex-column gap-3"></div>
+            </div>
+
+            <!-- ============ SOLICITUDES ============ -->
+            <div class="tab-pane fade" id="tab-solicitudes">
+                <div class="row g-4">
+                    <div class="col-lg-5">
+                        <div class="rep-card">
+                            <h6><i class="bi bi-calendar-plus me-1"></i>Solicitar un servicio</h6>
+                            <form id="formSolicitud" onsubmit="enviarSolicitud(event)" novalidate>
+                                <div class="mb-3">
+                                    <label class="form-label" for="sVehiculo">Vehículo *</label>
+                                    <select id="sVehiculo" class="form-select" required></select>
+                                </div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-7">
+                                        <label class="form-label" for="sFecha">Fecha preferida *</label>
+                                        <input type="date" id="sFecha" class="form-control" required>
+                                    </div>
+                                    <div class="col-5">
+                                        <label class="form-label" for="sFranja">Horario *</label>
+                                        <select id="sFranja" class="form-select"><option>Mañana</option><option>Tarde</option></select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label" for="sTipo">Tipo de servicio *</label>
+                                    <select id="sTipo" class="form-select">
+                                        <option value="Preventivo">Mantenimiento preventivo</option>
+                                        <option value="Correctivo">Reparación / revisión de una falla</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label" for="sDescripcion">¿Qué necesita? *</label>
+                                    <textarea id="sDescripcion" class="form-control" rows="3" maxlength="300" required
+                                              placeholder="Ej. Cambio de aceite y revisión de frenos; se escucha un ruido al frenar."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-olive w-100"><i class="bi bi-send me-1"></i>Enviar solicitud</button>
+                                <div class="form-hint mt-2">El taller confirmará su cita y la convertirá en una orden de trabajo.</div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <h6 class="fw-bold mb-3" style="color:var(--olive-900)">Mis solicitudes</h6>
+                        <div id="listaSolicitudes" class="d-flex flex-column gap-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ PERFIL ============ -->
+            <div class="tab-pane fade" id="tab-perfil">
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="rep-card">
+                            <h6><i class="bi bi-person-vcard me-1"></i>Mis datos</h6>
+                            <form onsubmit="guardarPerfil(event)" novalidate>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-7"><label class="form-label">Nombre</label><input type="text" id="pNombre" class="form-control" disabled></div>
+                                    <div class="col-md-5"><label class="form-label">Cédula</label><input type="text" id="pCedula" class="form-control" disabled></div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label" for="pTelefono">Teléfono</label>
+                                    <input type="tel" id="pTelefono" class="form-control" inputmode="numeric" maxlength="10" placeholder="0991234567">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label" for="pCorreo">Correo</label>
+                                    <input type="email" id="pCorreo" class="form-control" maxlength="50">
+                                </div>
+                                <div class="form-hint mb-3">Para cambiar su nombre o cédula, acérquese al taller.</div>
+                                <button type="submit" class="btn btn-olive"><i class="bi bi-check-lg me-1"></i>Guardar cambios</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="rep-card">
+                            <h6><i class="bi bi-shield-lock me-1"></i>Cambiar contraseña</h6>
+                            <form id="formPassword" onsubmit="cambiarPassword(event)" novalidate>
+                                <div class="mb-3"><label class="form-label" for="pwActual">Contraseña actual</label><input type="password" id="pwActual" class="form-control" autocomplete="current-password" required></div>
+                                <div class="mb-3"><label class="form-label" for="pwNueva">Nueva contraseña</label><input type="password" id="pwNueva" class="form-control" minlength="6" autocomplete="new-password" required></div>
+                                <div class="mb-3"><label class="form-label" for="pwRepetir">Repetir nueva contraseña</label><input type="password" id="pwRepetir" class="form-control" minlength="6" autocomplete="new-password" required></div>
+                                <button type="submit" class="btn btn-olive"><i class="bi bi-key me-1"></i>Actualizar contraseña</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="container-xxl px-4 py-3 d-flex justify-content-between">
+    <span th:text="${tallerNombre}">Taller Mecánico</span>
+    <span>Portal del cliente</span>
+</footer>
+
+<!-- Agregar vehículo -->
+<div class="modal fade" id="modalVehiculo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="formVehiculo" onsubmit="guardarVehiculo(event)" novalidate>
+                <div class="modal-header">
+                    <h5 class="modal-title">Agregar vehículo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label class="form-label" for="vPlaca">Placa *</label>
+                            <input type="text" id="vPlaca" class="form-control text-uppercase" maxlength="10" placeholder="ABC-1234" required>
+                            <div class="form-hint">Auto: ABC-1234 · Moto: AB123C</div>
+                        </div>
+                        <div class="col-md-7">
+                            <label class="form-label" for="vMarca">Marca *</label>
+                            <input type="text" id="vMarca" class="form-control" maxlength="30" placeholder="Chevrolet" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="vModelo">Modelo *</label>
+                            <input type="text" id="vModelo" class="form-control" maxlength="30" placeholder="Aveo" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="vAnio">Año</label>
+                            <input type="number" id="vAnio" class="form-control" min="1950" max="2030" placeholder="2020">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="vColor">Color</label>
+                            <input type="text" id="vColor" class="form-control" maxlength="20" placeholder="Blanco">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="vKm">Kilometraje actual</label>
+                            <div class="input-group">
+                                <input type="number" id="vKm" class="form-control" min="0" placeholder="45000">
+                                <span class="input-group-text">km</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-hint mt-3"><i class="bi bi-info-circle me-1"></i>Con su vehículo registrado podrá solicitar citas y recibir recordatorios de mantenimiento.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-olive"><i class="bi bi-check-lg me-1"></i>Guardar vehículo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmación -->
+<div class="modal fade" id="modalConfirmar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-body p-4 text-center">
+                <div class="mb-3" style="font-size:2rem; color: var(--olive-700);"><i class="bi bi-question-circle"></i></div>
+                <h6 class="fw-bold mb-2" id="confirmarTitulo">¿Confirmar?</h6>
+                <p class="small text-muted-2 mb-0" id="confirmarMensaje"></p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-soft" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-olive" id="confirmarBoton">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="toast" class="toast align-items-center" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body d-flex align-items-center gap-2" id="toastMensaje"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    const USERNAME = /*[[${username}]]*/ 'cliente';
+    const NOMBRE_USUARIO = /*[[${nombreUsuario}]]*/ 'Cliente';
+    const TALLER = {
+        nombre: /*[[${tallerNombre}]]*/ 'Taller Mecánico',
+        ruc: /*[[${tallerRuc}]]*/ '',
+        direccion: /*[[${tallerDireccion}]]*/ '',
+        telefono: /*[[${tallerTelefono}]]*/ ''
+    };
+</script>
+
+<script>
+/* Utilidades compartidas con el panel del taller */
+/** Escapa texto antes de insertarlo con innerHTML (evita XSS). */
+function esc(valor) {
+    if (valor === null || valor === undefined) return '';
+    return String(valor)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+const fmtDinero = new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD' });
+function dinero(v) { return fmtDinero.format(Number(v || 0)); }
+
+/** Cantidades: 2 -> "2", 1.5 -> "1,5" */
+function cant(v) { return Number(v || 0).toLocaleString('es-EC', { maximumFractionDigits: 2 }); }
+
+function km(v) { return v == null ? '—' : Number(v).toLocaleString('es-EC') + ' km'; }
+
+/** 2026-11-01 -> 01/11/2026 */
+function fecha(iso) {
+    if (!iso) return '—';
+    const p = String(iso).split('-');
+    return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
+}
+
+function hoyISO() {
+    const d = new Date();
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+
+function codigoOrden(id) { return 'OT-' + String(id).padStart(4, '0'); }
+
+function normalizar(t) {
+    return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+function nombreCliente(c) { return c ? `${c.nombre} ${c.apellido}` : 'Sin propietario'; }
+
+function nombreMecanico(u) { return u ? (u.nombreCompleto || u.username) : null; }
+
+function badgeEstadoAuto(estado) {
+    const clases = {
+        'Ingresado': 'e-ingresado', 'En Diagnóstico': 'e-diagnostico', 'En Reparación': 'e-reparacion',
+        'Listo': 'e-listo', 'Entregado': 'e-entregado'
+    };
+    return `<span class="estado ${clases[estado] || 'e-ingresado'}">${esc(estado || 'Sin estado')}</span>`;
+}
+
+function badgeEstadoOrden(estado) {
+    const clases = { 'Pendiente': 'e-pendiente', 'En Proceso': 'e-proceso', 'Finalizado': 'e-finalizado' };
+    return `<span class="estado ${clases[estado] || 'e-pendiente'}">${esc(estado || 'Sin estado')}</span>`;
+}
+
+function badgeTipo(tipo) {
+    const cls = tipo === 'Correctivo' ? 't-correctivo' : 't-preventivo';
+    return `<span class="tipo ${cls}">${esc(tipo || '—')}</span>`;
+}
+
+function filaVacia(colspan, icono, texto) {
+    return `<tr><td colspan="${colspan}" class="empty"><i class="bi ${icono}"></i>${esc(texto)}</td></tr>`;
+}
+
+/* ---------- Toast ---------- */
+let toastInstance;
+function toast(mensaje, tipo = 'ok') {
+    const el = document.getElementById('toast');
+    el.className = 'toast align-items-center ' + (tipo === 'ok' ? 'ok' : 'error');
+    const icono = tipo === 'ok' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill';
+    document.getElementById('toastMensaje').innerHTML = `<i class="bi ${icono}"></i><span>${esc(mensaje)}</span>`;
+    toastInstance.show();
+}
+
+/* ---------- Confirmación ---------- */
+function confirmar(titulo, mensaje, textoBoton = 'Eliminar') {
+    return new Promise(resolve => {
+        document.getElementById('confirmarTitulo').textContent = titulo;
+        document.getElementById('confirmarMensaje').textContent = mensaje;
+        const boton = document.getElementById('confirmarBoton');
+        boton.textContent = textoBoton;
+        const el = document.getElementById('modalConfirmar');
+        let aceptado = false;
+        boton.onclick = () => { aceptado = true; modal.confirmar.hide(); };
+        el.addEventListener('hidden.bs.modal', () => resolve(aceptado), { once: true });
+        modal.confirmar.show();
+    });
+}
+
+/* ---------- Cliente HTTP (incluye token CSRF y manejo de errores) ---------- */
+const CSRF_TOKEN = document.querySelector('meta[name="_csrf"]')?.content;
+const CSRF_HEADER = document.querySelector('meta[name="_csrf_header"]')?.content;
+
+async function api(url, opciones = {}) {
+    const metodo = (opciones.method || 'GET').toUpperCase();
+    const headers = { 'Accept': 'application/json', ...(opciones.headers || {}) };
+    if (opciones.body !== undefined) headers['Content-Type'] = 'application/json';
+    if (metodo !== 'GET' && CSRF_TOKEN && CSRF_HEADER) headers[CSRF_HEADER] = CSRF_TOKEN;
+
+    const res = await fetch(url, {
+        ...opciones,
+        method: metodo,
+        headers,
+        body: opciones.body !== undefined ? JSON.stringify(opciones.body) : undefined
+    });
+
+    if (res.status === 401) {
+        window.location.href = '/login?expirada';
+        throw new Error('Sesión expirada');
+    }
+
+    const texto = await res.text();
+    let datos = null;
+    try { datos = texto ? JSON.parse(texto) : null; } catch { datos = texto; }
+
+    if (!res.ok) {
+        const mensaje = (datos && datos.mensaje) || (typeof datos === 'string' && datos) ||
+            (res.status === 403 ? 'No tiene permisos para realizar esta acción' : 'Ocurrió un error inesperado');
+        const error = new Error(mensaje);
+        error.errores = datos && datos.errores;
+        throw error;
+    }
+    return datos;
+}
+
+/** Marca en rojo los campos que el backend reporta como inválidos. */
+function marcarErrores(mapaCampos, errores) {
+    Object.values(mapaCampos).forEach(id => document.getElementById(id)?.classList.remove('is-invalid'));
+    if (!errores) return;
+    Object.entries(errores).forEach(([campo]) => {
+        const id = mapaCampos[campo];
+        if (id) document.getElementById(id)?.classList.add('is-invalid');
+    });
+}
+
+
+const ESTILOS_IMPRESION = `
+    @page { size: A4; margin: 14mm; }
+    * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { font-family: "Segoe UI", Roboto, Arial, sans-serif; color: #2B2A26; font-size: 12px; margin: 0; }
+    .doc-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #6B8E5A; padding-bottom: 10px; margin-bottom: 14px; }
+    .doc-head .taller { font-family: Georgia, serif; font-size: 22px; color: #2F3F27; }
+    .doc-head .datos { color: #6E6A60; font-size: 11px; margin-top: 2px; }
+    .doc-head .titulo { text-align: right; }
+    .doc-head .titulo .t { font-size: 15px; font-weight: 700; color: #2F3F27; text-transform: uppercase; letter-spacing: .5px; }
+    .doc-head .titulo .c { font-family: Consolas, monospace; font-size: 18px; font-weight: 700; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .box { border: 1px solid #E3D6C2; border-radius: 6px; padding: 8px 10px; }
+    .box h4 { margin: 0 0 6px; font-size: 10px; text-transform: uppercase; letter-spacing: .6px; color: #6E6A60; }
+    .box p { margin: 2px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 6px 0 12px; }
+    th { background: #FBF8F3; color: #6E6A60; font-size: 10px; text-transform: uppercase; letter-spacing: .4px; text-align: left; padding: 6px 8px; border-bottom: 1px solid #E3D6C2; }
+    td { padding: 6px 8px; border-bottom: 1px solid #EFE6D8; vertical-align: top; }
+    .r { text-align: right; } .muted { color: #6E6A60; }
+    .totales { margin-left: auto; width: 260px; }
+    .totales div { display: flex; justify-content: space-between; padding: 3px 0; }
+    .totales .total { border-top: 2px solid #2F3F27; margin-top: 4px; padding-top: 6px; font-size: 15px; font-weight: 700; color: #2F3F27; }
+    .firmas { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 50px; text-align: center; color: #6E6A60; }
+    .firmas div { border-top: 1px solid #2B2A26; padding-top: 4px; }
+    .pie { margin-top: 18px; font-size: 10px; color: #6E6A60; text-align: center; }
+    .placa { font-family: Consolas, monospace; font-weight: 700; border: 1.5px solid #2B2A26; border-top: 3px solid #6B8E5A; padding: 1px 6px; border-radius: 3px; }
+    /* Reporte */
+    .row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+    .row > div { flex: 1 1 0; min-width: 0; }
+    .rep-kpi, .rep-card { border: 1px solid #E3D6C2; border-radius: 6px; padding: 8px 10px; height: 100%; }
+    .rep-kpi { background: #FBF8F3; }
+    .rep-kpi .v { font-size: 17px; font-weight: 700; } .rep-kpi .l { font-size: 9px; font-weight: 700; color: #6E6A60; text-transform: uppercase; }
+    .rep-card h6 { margin: 0 0 8px; font-size: 12px; color: #2F3F27; }
+    .barra-h { display: grid; grid-template-columns: 1fr auto; column-gap: 6px; row-gap: 2px; align-items: center; margin-bottom: 6px; font-size: 11px; }
+    .barra-h .track { grid-column: 1 / -1; grid-row: 2; }
+    .barra-h .track { height: 8px; background: #F6F0E7; border-radius: 4px; overflow: hidden; display: block; }
+    .barra-h .track span { display: block; height: 100%; background: #6B8E5A; }
+    .barra-h .etq { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chart-dias { display: flex; align-items: flex-end; gap: 3px; height: 110px; border-bottom: 1px solid #E3D6C2; }
+    .chart-dias .col-bar { flex: 1; background: #6B8E5A; border-radius: 2px 2px 0 0; }
+    .split { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: #F6F0E7; margin-bottom: 6px; }
+    .split span { display: block; height: 100%; }
+    .leyenda i { display: inline-block; width: 9px; height: 9px; margin-right: 4px; }
+    .leyenda > div { display: flex; justify-content: space-between; }
+    .small { font-size: 10px; } .text-muted-2 { color: #6E6A60; } .text-end { text-align: right; } .text-nowrap { white-space: nowrap; }
+    hr { border: none; border-top: 1px solid #E3D6C2; margin: 8px 0; }
+    .d-flex { display: flex; } .justify-content-between { justify-content: space-between; }
+    .mb-1 { margin-bottom: 3px; } .mb-2 { margin-bottom: 6px; } .mt-1 { margin-top: 3px; }
+    :root { --olive: #6B8E5A; --beige: #EADCC8; }
+`;
+
+function encabezadoDocumento(titulo, codigo) {
+    const datos = [TALLER.ruc ? 'RUC ' + TALLER.ruc : '', TALLER.direccion, TALLER.telefono ? 'Tel. ' + TALLER.telefono : '']
+        .filter(Boolean).map(esc).join(' · ');
+    return `<div class="doc-head">
+        <div><div class="taller">${esc(TALLER.nombre)}</div><div class="datos">${datos}</div></div>
+        <div class="titulo"><div class="t">${esc(titulo)}</div>${codigo ? `<div class="c">${esc(codigo)}</div>` : ''}
+            <div class="datos">Emitido: ${new Date().toLocaleString('es-EC')}</div></div>
+    </div>`;
+}
+
+function abrirVentanaImpresion(titulo, cuerpo) {
+    const w = window.open('', '_blank');
+    if (!w) { toast('El navegador bloqueó la ventana emergente; permita ventanas para este sitio', 'error'); return; }
+    w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>${esc(titulo)}</title>
+        <style>${ESTILOS_IMPRESION}</style></head><body>${cuerpo}
+        <script>window.addEventListener('load', () => setTimeout(() => window.print(), 250));<\/script></body></html>`);
+    w.document.close();
+}
+
+function imprimirOrden(idOrden) {
+    const o = ordenes.find(x => x.idMantenimiento === idOrden);
+    if (!o) return;
+    const a = o.auto || {}, c = a.cliente || {};
+    const detalles = o.detalles || [];
+    let rep = 0, mo = 0;
+    const filas = detalles.length
+        ? detalles.map(d => {
+            const sub = Number(d.cantidad) * Number(d.precioUnitario);
+            if (d.tipo === 'REPUESTO') rep += sub; else mo += sub;
+            return `<tr><td>${d.tipo === 'REPUESTO' ? 'Repuesto' : 'Mano de obra'}</td>
+                <td>${esc(d.descripcion)}${d.repuesto ? ` <span class="muted">(${esc(d.repuesto.codigo)})</span>` : ''}</td>
+                <td class="r">${cant(d.cantidad)}</td><td class="r">${dinero(d.precioUnitario)}</td><td class="r">${dinero(sub)}</td></tr>`;
+        }).join('')
+        : `<tr><td>Servicio</td><td>${esc(o.trabajosRealizados || o.diagnostico || 'Servicio de mantenimiento')}</td>
+            <td class="r">1</td><td class="r">${dinero(o.costo)}</td><td class="r">${dinero(o.costo)}</td></tr>`;
+
+    const cuerpo = `
+        ${encabezadoDocumento('Orden de trabajo', codigoOrden(o.idMantenimiento))}
+        <div class="grid2">
+            <div class="box"><h4>Cliente</h4>
+                <p><b>${esc(nombreCliente(c))}</b></p>
+                <p>C.I. ${esc(c.cedula || '—')}</p>
+                <p>${esc(c.telefono || '')} ${c.correo ? '· ' + esc(c.correo) : ''}</p></div>
+            <div class="box"><h4>Vehículo</h4>
+                <p><span class="placa">${esc(a.placa)}</span> &nbsp;<b>${esc(a.marca)} ${esc(a.modelo)}</b> ${a.anio ? '(' + esc(a.anio) + ')' : ''}</p>
+                <p>Color: ${esc(a.color || '—')}</p>
+                <p>Kilometraje al ingreso: ${o.kilometraje != null ? km(o.kilometraje) : '—'}</p></div>
+        </div>
+        <div class="grid2">
+            <div class="box"><h4>Orden</h4>
+                <p>Tipo: <b>${esc(o.tipoMantenimiento)}</b> · Estado: <b>${esc(o.estado)}</b></p>
+                <p>Ingreso: ${fecha(o.fechaIngreso)}${o.fechaFinalizacion ? ' · Finalizada: ' + fecha(o.fechaFinalizacion) : ''}</p>
+                <p>Mecánico: ${esc(nombreMecanico(o.mecanico) || 'Sin asignar')}</p></div>
+            <div class="box"><h4>Diagnóstico y trabajos</h4>
+                <p><b>Diagnóstico:</b> ${esc(o.diagnostico || '—')}</p>
+                <p><b>Trabajos:</b> ${esc(o.trabajosRealizados || '—')}</p></div>
+        </div>
+        <table>
+            <thead><tr><th style="width:90px">Tipo</th><th>Descripción</th><th class="r" style="width:60px">Cant.</th><th class="r" style="width:90px">P. unitario</th><th class="r" style="width:90px">Subtotal</th></tr></thead>
+            <tbody>${filas}</tbody>
+        </table>
+        <div class="totales">
+            ${detalles.length ? `<div><span>Repuestos</span><span>${dinero(rep)}</span></div><div><span>Mano de obra</span><span>${dinero(mo)}</span></div>` : ''}
+            <div class="total"><span>Total</span><span>${dinero(o.costo)}</span></div>
+        </div>
+        <div class="firmas"><div>Firma del cliente</div><div>Responsable del taller</div></div>
+        <div class="pie">Documento interno de control del taller · no constituye comprobante de venta.</div>`;
+    abrirVentanaImpresion(`${codigoOrden(o.idMantenimiento)} - ${a.placa || ''}`, cuerpo);
+}
+
+
+/* =====================================================================
+   PORTAL DEL CLIENTE
+   ===================================================================== */
+const modal = {};
+let datos = null;          // respuesta de /api/portal/resumen
+let ordenes = [];
+const ETAPAS = ['Ingresado', 'En Diagnóstico', 'En Reparación', 'Listo', 'Entregado'];
+const ICONOS_ETAPA = ['bi-box-arrow-in-right', 'bi-search', 'bi-gear', 'bi-check2-circle', 'bi-key'];
+
+async function cargar() {
+    try {
+        datos = await api('/api/portal/resumen');
+        ordenes = datos.ordenes;
+        renderAvisos();
+        renderVehiculos();
+        poblarFiltros();
+        renderHistorial();
+        renderSolicitudes();
+        renderPerfil();
+    } catch (e) {
+        toast(e.message, 'error');
+    }
+}
+
+function autoDe(id) { return datos.vehiculos.find(a => a.idAuto === id); }
+function ordenesDe(idAuto) { return ordenes.filter(o => o.auto?.idAuto === idAuto); }
+/** Orden activa: la más reciente que no está finalizada. */
+function ordenActiva(idAuto) { return ordenesDe(idAuto).find(o => o.estado !== 'Finalizado'); }
+function necesitaAprobacion(o) { return o && o.estado !== 'Finalizado' && !o.aprobadoCliente && Number(o.costo) > 0; }
+
+/* ---------- Avisos ---------- */
+function renderAvisos() {
+    const html = [];
+    datos.vehiculos.filter(a => a.estadoTaller === 'Listo').forEach(a => html.push(
+        `<div class="aviso aviso-ok"><i class="bi bi-check-circle-fill"></i><div><b>Su ${esc(a.marca)} ${esc(a.modelo)} (${esc(a.placa)}) está listo para retirar.</b> Puede acercarse al taller en horario de atención.</div></div>`));
+    ordenes.filter(necesitaAprobacion).forEach(o => html.push(
+        `<div class="aviso aviso-ambar"><i class="bi bi-clipboard-check"></i><div><b>Tiene un presupuesto por aprobar:</b> ${codigoOrden(o.idMantenimiento)} · ${esc(o.auto.placa)} · ${dinero(o.costo)}</div>
+         <button class="btn btn-olive btn-sm ms-auto" onclick="aprobar(${o.idMantenimiento})">Revisar y aprobar</button></div>`));
+    datos.recordatorios.filter(r => r.estado === 'VENCIDO' || r.estado === 'PROXIMO').forEach(r => html.push(
+        `<div class="aviso ${r.estado === 'VENCIDO' ? 'aviso-rojo' : 'aviso-ambar'}"><i class="bi bi-bell"></i><div>
+         <b>${r.estado === 'VENCIDO' ? 'Mantenimiento vencido' : 'Mantenimiento próximo'}:</b> ${esc(r.vehiculo)} (${esc(r.placa)}) ${textoProximo(r)}</div>
+         <button class="btn btn-soft btn-sm ms-auto" onclick="irASolicitar(${r.idAuto}, 'Preventivo')">Agendar</button></div>`));
+    document.getElementById('avisos').innerHTML = html.join('');
+}
+
+function textoProximo(r) {
+    const partes = [];
+    if (r.proximoKm != null) partes.push(`a los ${cant(r.proximoKm)} km`);
+    if (r.proximaFecha) partes.push(`o el ${fecha(r.proximaFecha)}`);
+    return partes.join(' ');
+}
+
+/* ---------- Mis vehículos ---------- */
+function renderVehiculos() {
+    document.getElementById('countVehiculos').textContent = datos.vehiculos.length;
+    const cont = document.getElementById('listaVehiculos');
+    if (!datos.vehiculos.length) {
+        cont.innerHTML = `<div class="empty"><i class="bi bi-car-front"></i>Aún no tiene vehículos registrados.
+            <div class="mt-3"><button class="btn btn-olive" onclick="abrirModalVehiculo()"><i class="bi bi-plus-lg me-1"></i>Agregar mi primer vehículo</button></div></div>`;
+        return;
+    }
+    cont.innerHTML = datos.vehiculos.map(a => {
+        const o = ordenActiva(a.idAuto);
+        const ultima = ordenesDe(a.idAuto)[0];
+        const rec = datos.recordatorios.find(r => r.idAuto === a.idAuto);
+        const idx = Math.max(0, ETAPAS.indexOf(a.estadoTaller));
+        // Se muestra el avance solo si el vehículo está en el taller o tiene un trabajo abierto
+        const enTaller = !!o || (a.estadoTaller && a.estadoTaller !== 'Entregado');
+        const pasos = ETAPAS.map((e, i) => `
+            <div class="paso ${i < idx ? 'hecho' : ''} ${i === idx ? 'actual' : ''}">
+                <span class="punto"><i class="bi ${i < idx ? 'bi-check-lg' : ICONOS_ETAPA[i]}"></i></span>
+                <span class="txt">${e}</span>
+            </div>`).join('');
+
+        let bloqueOrden;
+        if (o) {
+            bloqueOrden = `
+            <div class="orden-actual">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <span class="codigo">${codigoOrden(o.idMantenimiento)}</span>${badgeTipo(o.tipoMantenimiento)}${badgeEstadoOrden(o.estado)}
+                    <span class="small text-muted-2 ms-auto">Ingreso ${fecha(o.fechaIngreso)}${o.mecanico ? ' · Mecánico: ' + esc(nombreMecanico(o.mecanico)) : ''}</span>
+                </div>
+                <div class="row g-3 small">
+                    <div class="col-md-6"><div class="text-muted-2">Diagnóstico</div>${esc(o.diagnostico) || '<span class="text-muted-2">En revisión</span>'}</div>
+                    <div class="col-md-6"><div class="text-muted-2">Trabajos</div>${esc(o.trabajosRealizados) || '<span class="text-muted-2">Por realizar</span>'}</div>
+                </div>
+                ${tablaDetalle(o)}
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                    ${o.aprobadoCliente ? `<span class="estado e-listo"><i class="bi bi-check2"></i>Presupuesto aprobado el ${fechaHora(o.fechaAprobacion)}</span>` : ''}
+                    <span class="ms-auto fw-semibold">Total: <span class="monto fs-5">${dinero(o.costo)}</span></span>
+                    ${necesitaAprobacion(o) ? `<button class="btn btn-olive btn-sm" onclick="aprobar(${o.idMantenimiento})"><i class="bi bi-hand-thumbs-up me-1"></i>Aprobar presupuesto</button>` : ''}
+                    <button class="btn btn-soft btn-sm" onclick="imprimirOrden(${o.idMantenimiento})"><i class="bi bi-printer me-1"></i>PDF</button>
+                </div>
+            </div>`;
+        } else {
+            bloqueOrden = `<div class="orden-actual text-muted-2 small"><i class="bi bi-info-circle me-1"></i>No tiene trabajos en curso para este vehículo.
+                ${ultima ? `Último servicio: <b>${codigoOrden(ultima.idMantenimiento)}</b> el ${fecha(ultima.fechaFinalizacion || ultima.fechaIngreso)} (${esc(ultima.tipoMantenimiento)}).` : ''}</div>`;
+        }
+
+        const recHtml = rec ? (rec.estado === 'SIN_HISTORIAL'
+            ? '<span class="text-muted-2">Sin mantenimientos preventivos registrados</span>'
+            : `${estadoRecordatorio(rec.estado)} <span class="ms-1">${textoProximo(rec)}</span>`) : '';
+
+        return `
+        <article class="vehiculo-card">
+            <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+                <span class="placa fs-6">${esc(a.placa)}</span>
+                <div>
+                    <div class="fw-bold fs-5" style="color:var(--olive-900)">${esc(a.marca)} ${esc(a.modelo)} ${a.anio ? `<span class="fw-normal text-muted-2">${esc(a.anio)}</span>` : ''}</div>
+                    <div class="small text-muted-2">${esc(a.color || '')}${a.color ? ' · ' : ''}${km(a.kilometraje)}</div>
+                </div>
+                <div class="ms-auto d-flex gap-2">
+                    <button class="btn btn-soft btn-sm" onclick="verHistorialDe(${a.idAuto})"><i class="bi bi-clock-history me-1"></i>Historial (${ordenesDe(a.idAuto).length})</button>
+                    <button class="btn btn-soft btn-sm" onclick="irASolicitar(${a.idAuto})"><i class="bi bi-calendar-plus me-1"></i>Solicitar servicio</button>
+                </div>
+            </div>
+            ${enTaller ? `<div class="stepper mb-3">${pasos}</div>`
+                : `<div class="fuera-taller mb-3"><i class="bi bi-house-check"></i>Su vehículo no está en el taller en este momento.</div>`}
+            ${bloqueOrden}
+            <div class="small mt-3"><i class="bi bi-bell me-1 text-muted-2"></i><span class="text-muted-2">Próximo mantenimiento preventivo:</span> ${recHtml}</div>
+        </article>`;
+    }).join('');
+}
+
+function estadoRecordatorio(e) {
+    const m = { VENCIDO: ['e-vencido', 'Vencido'], PROXIMO: ['e-proximo', 'Próximo'], AL_DIA: ['e-aldia', 'Al día'] };
+    const [c, t] = m[e] || ['e-sinhist', e];
+    return `<span class="estado ${c}">${t}</span>`;
+}
+
+function tablaDetalle(o) {
+    const d = o.detalles || [];
+    if (!d.length) return '';
+    return `<div class="table-wrap mt-3"><table class="table table-taller mb-0">
+        <thead><tr><th>Concepto</th><th class="text-end">Cant.</th><th class="text-end">P. unit.</th><th class="text-end">Subtotal</th></tr></thead>
+        <tbody>${d.map(x => `<tr>
+            <td><span class="small text-muted-2">${x.tipo === 'REPUESTO' ? 'Repuesto' : 'Mano de obra'}</span><div>${esc(x.descripcion)}</div></td>
+            <td class="text-end">${cant(x.cantidad)}</td><td class="text-end">${dinero(x.precioUnitario)}</td>
+            <td class="text-end fw-semibold">${dinero(Number(x.cantidad) * Number(x.precioUnitario))}</td></tr>`).join('')}</tbody>
+    </table></div>`;
+}
+
+function fechaHora(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return isNaN(d) ? iso : d.toLocaleString('es-EC', { dateStyle: 'short', timeStyle: 'short' });
+}
+
+async function aprobar(idOrden) {
+    const o = ordenes.find(x => x.idMantenimiento === idOrden);
+    const ok = await confirmar(`¿Aprobar el presupuesto de ${codigoOrden(idOrden)}?`,
+        `Autoriza al taller a realizar los trabajos por un total de ${dinero(o?.costo)}.`, 'Aprobar');
+    if (!ok) return;
+    try {
+        await api(`/api/portal/ordenes/${idOrden}/aprobar`, { method: 'POST' });
+        toast('Presupuesto aprobado. ¡Gracias!');
+        await cargar();
+    } catch (e) { toast(e.message, 'error'); }
+}
+
+/* ---------- Historial con filtros (más reciente primero) ---------- */
+function poblarFiltros() {
+    const opts = datos.vehiculos.map(a => `<option value="${a.idAuto}">${esc(a.placa)} · ${esc(a.marca)} ${esc(a.modelo)}</option>`).join('');
+    const h = document.getElementById('hVehiculo');
+    const actual = h.value;
+    h.innerHTML = '<option value="">Todos mis vehículos</option>' + opts;
+    h.value = actual;
+    const s = document.getElementById('sVehiculo');
+    const actualS = s.value;
+    s.innerHTML = '<option value="">Seleccione…</option>' + opts;
+    s.value = actualS;
+    document.getElementById('sFecha').min = hoyISO();
+}
+
+function fechaOrden(o) { return o.fechaFinalizacion || o.fechaIngreso || ''; }
+
+function renderHistorial() {
+    const v = Number(document.getElementById('hVehiculo').value) || null;
+    const tipo = document.getElementById('hTipo').value;
+    const estado = document.getElementById('hEstado').value;
+    const desde = document.getElementById('hDesde').value;
+    const hasta = document.getElementById('hHasta').value;
+    const q = normalizar(document.getElementById('hTexto').value);
+
+    // Siempre del más reciente al más antiguo
+    const todas = [...ordenes].sort((a, b) =>
+        String(b.fechaIngreso || '').localeCompare(String(a.fechaIngreso || '')) || b.idMantenimiento - a.idMantenimiento);
+    const lista = todas.filter(o =>
+        (!v || o.auto?.idAuto === v) && (!tipo || o.tipoMantenimiento === tipo) && (!estado || o.estado === estado) &&
+        (!desde || o.fechaIngreso >= desde) && (!hasta || o.fechaIngreso <= hasta) &&
+        (!q || normalizar([o.diagnostico, o.trabajosRealizados, codigoOrden(o.idMantenimiento),
+            ...(o.detalles || []).map(d => d.descripcion)].join(' ')).includes(q)));
+
+    document.getElementById('countHistorial').textContent = ordenes.length;
+    const gastado = lista.filter(o => o.estado === 'Finalizado').reduce((s, o) => s + Number(o.costo || 0), 0);
+    document.getElementById('historialResumen').innerHTML = `
+        <span class="resumen-mini"><b>${lista.length}</b> ${lista.length === 1 ? 'servicio' : 'servicios'}</span>
+        <span class="resumen-mini">Invertido: <b>${dinero(gastado)}</b></span>
+        ${lista[0] ? `<span class="resumen-mini">Más reciente: <b>${fecha(lista[0].fechaIngreso)}</b></span>` : ''}`;
+
+    const cont = document.getElementById('listaHistorial');
+    if (!lista.length) {
+        cont.innerHTML = `<div class="empty"><i class="bi bi-clock-history"></i>${ordenes.length ? 'Ningún servicio coincide con los filtros.' : 'Aún no hay servicios registrados.'}</div>`;
+        return;
+    }
+    cont.innerHTML = lista.map((o, i) => `
+        <article class="hist-item ${i === 0 ? 'reciente' : ''}">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                ${i === 0 ? '<span class="chip-reciente"><i class="bi bi-star-fill me-1"></i>Más reciente</span>' : ''}
+                <span class="codigo">${codigoOrden(o.idMantenimiento)}</span>
+                <span class="placa">${esc(o.auto?.placa)}</span>
+                ${badgeTipo(o.tipoMantenimiento)} ${badgeEstadoOrden(o.estado)}
+                <span class="ms-auto monto">${dinero(o.costo)}</span>
+            </div>
+            <div class="small text-muted-2 mt-2">
+                <i class="bi bi-calendar3 me-1"></i>Ingreso ${fecha(o.fechaIngreso)}${o.fechaFinalizacion ? ' · Finalizado ' + fecha(o.fechaFinalizacion) : ''}
+                ${o.kilometraje != null ? ` · <i class="bi bi-speedometer2 mx-1"></i>${km(o.kilometraje)}` : ''}
+                ${o.mecanico ? ` · <i class="bi bi-person-gear mx-1"></i>${esc(nombreMecanico(o.mecanico))}` : ''}
+            </div>
+            <div class="row g-3 small mt-1">
+                <div class="col-md-6"><span class="text-muted-2">Diagnóstico:</span> ${esc(o.diagnostico) || '—'}</div>
+                <div class="col-md-6"><span class="text-muted-2">Trabajos:</span> ${esc(o.trabajosRealizados) || '—'}</div>
+            </div>
+            <div class="d-flex gap-2 mt-2">
+                ${(o.detalles || []).length ? `<button class="btn btn-link btn-sm p-0 link-olive" onclick="this.closest('.hist-item').querySelector('.hist-det').classList.toggle('d-none')"><i class="bi bi-list-ul me-1"></i>Ver detalle (${o.detalles.length})</button>` : ''}
+                <button class="btn btn-link btn-sm p-0 link-olive ms-auto" onclick="imprimirOrden(${o.idMantenimiento})"><i class="bi bi-printer me-1"></i>Descargar PDF</button>
+            </div>
+            <div class="hist-det d-none">${tablaDetalle(o)}</div>
+        </article>`).join('');
+}
+
+function limpiarFiltrosHistorial() {
+    ['hVehiculo', 'hTipo', 'hEstado', 'hDesde', 'hHasta', 'hTexto'].forEach(id => document.getElementById(id).value = '');
+    renderHistorial();
+}
+
+function verHistorialDe(idAuto) {
+    limpiarFiltrosHistorial();
+    document.getElementById('hVehiculo').value = idAuto;
+    renderHistorial();
+    bootstrap.Tab.getOrCreateInstance(document.getElementById('tab-historial-btn')).show();
+}
+
+/* ---------- Solicitudes ---------- */
+function irASolicitar(idAuto, tipo) {
+    if (!datos.vehiculos.length) {
+        toast('Primero agregue su vehículo para poder solicitar un servicio', 'error');
+        abrirModalVehiculo();
+        return;
+    }
+    bootstrap.Tab.getOrCreateInstance(document.getElementById('tab-solicitudes-btn')).show();
+    if (idAuto) document.getElementById('sVehiculo').value = idAuto;
+    if (tipo) document.getElementById('sTipo').value = tipo;
+    setTimeout(() => document.getElementById(idAuto ? 'sFecha' : 'sVehiculo').focus(), 200);
+}
+
+const ESTADO_SOLICITUD = {
+    PENDIENTE: ['e-pendiente', 'Pendiente de confirmar'], ATENDIDA: ['e-finalizado', 'Atendida'],
+    RECHAZADA: ['e-vencido', 'No disponible'], CANCELADA: ['e-entregado', 'Cancelada']
+};
+
+function renderSolicitudes() {
+    const lista = datos.solicitudes;
+    document.getElementById('countSolicitudes').textContent = lista.filter(s => s.estado === 'PENDIENTE').length;
+    const cont = document.getElementById('listaSolicitudes');
+    if (!lista.length) {
+        cont.innerHTML = '<div class="empty"><i class="bi bi-calendar"></i>Aún no ha enviado solicitudes.</div>';
+        return;
+    }
+    cont.innerHTML = lista.map(s => {
+        const [cls, txt] = ESTADO_SOLICITUD[s.estado] || ['e-ingresado', s.estado];
+        return `<div class="hist-item">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="placa">${esc(s.auto?.placa)}</span>${badgeTipo(s.tipoMantenimiento)}
+                <span class="small text-muted-2"><i class="bi bi-calendar3 me-1"></i>${fecha(s.fechaPreferida)} · ${esc(s.franja)}</span>
+                <span class="estado ${cls} ms-auto">${txt}</span>
+            </div>
+            <div class="small mt-2">${esc(s.descripcion)}</div>
+            ${s.respuesta ? `<div class="small mt-2 respuesta"><i class="bi bi-chat-left-text me-1"></i><b>Taller:</b> ${esc(s.respuesta)}</div>` : ''}
+            <div class="d-flex align-items-center mt-2 small text-muted-2">
+                Enviada el ${fechaHora(s.fechaSolicitud)}
+                ${s.estado === 'PENDIENTE' ? `<button class="btn btn-link btn-sm p-0 ms-auto text-danger" onclick="cancelarSolicitud(${s.idSolicitud})">Cancelar solicitud</button>` : ''}
+                ${s.idOrden ? `<button class="btn btn-link btn-sm p-0 ms-auto link-olive" onclick="verHistorialDe(${s.auto.idAuto})">Ver orden ${codigoOrden(s.idOrden)}</button>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function enviarSolicitud(e) {
+    e.preventDefault();
+    const body = {
+        autoId: Number(document.getElementById('sVehiculo').value) || null,
+        fechaPreferida: document.getElementById('sFecha').value || null,
+        franja: document.getElementById('sFranja').value,
+        tipoMantenimiento: document.getElementById('sTipo').value,
+        descripcion: document.getElementById('sDescripcion').value.trim()
+    };
+    const campos = { autoId: 'sVehiculo', fechaPreferida: 'sFecha', descripcion: 'sDescripcion' };
+    try {
+        await api('/api/portal/solicitudes', { method: 'POST', body });
+        marcarErrores(campos, null);
+        document.getElementById('formSolicitud').reset();
+        toast('Solicitud enviada. El taller le confirmará la cita.');
+        await cargar();
+    } catch (err) {
+        marcarErrores(campos, err.errores);
+        toast(err.message, 'error');
+    }
+}
+
+async function cancelarSolicitud(id) {
+    const ok = await confirmar('¿Cancelar la solicitud?', 'El taller ya no la verá como pendiente.', 'Sí, cancelar');
+    if (!ok) return;
+    try {
+        await api(`/api/portal/solicitudes/${id}/cancelar`, { method: 'PATCH' });
+        toast('Solicitud cancelada');
+        await cargar();
+    } catch (e) { toast(e.message, 'error'); }
+}
+
+/* ---------- Agregar vehículo ---------- */
+function abrirModalVehiculo() {
+    const f = document.getElementById('formVehiculo');
+    f.reset();
+    f.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    modal.vehiculo.show();
+}
+
+async function guardarVehiculo(e) {
+    e.preventDefault();
+    const num = id => document.getElementById(id).value === '' ? null : Number(document.getElementById(id).value);
+    const body = {
+        placa: document.getElementById('vPlaca').value.trim().toUpperCase(),
+        marca: document.getElementById('vMarca').value.trim(),
+        modelo: document.getElementById('vModelo').value.trim(),
+        anio: num('vAnio'),
+        color: document.getElementById('vColor').value.trim(),
+        kilometraje: num('vKm')
+    };
+    const campos = { placa: 'vPlaca', marca: 'vMarca', modelo: 'vModelo', anio: 'vAnio', color: 'vColor', kilometraje: 'vKm' };
+    try {
+        await api('/api/portal/vehiculos', { method: 'POST', body });
+        modal.vehiculo.hide();
+        toast(`Vehículo ${body.placa} agregado`);
+        await cargar();
+    } catch (err) {
+        marcarErrores(campos, err.errores);
+        if (!err.errores && /placa/i.test(err.message)) document.getElementById('vPlaca').classList.add('is-invalid');
+        toast(err.message, 'error');
+    }
+}
+
+/* ---------- Perfil ---------- */
+function renderPerfil() {
+    const c = datos.cliente;
+    document.getElementById('pNombre').value = `${c.nombre} ${c.apellido}`;
+    document.getElementById('pCedula').value = c.cedula;
+    document.getElementById('pTelefono').value = c.telefono || '';
+    document.getElementById('pCorreo').value = c.correo || '';
+}
+
+async function guardarPerfil(e) {
+    e.preventDefault();
+    const body = { telefono: document.getElementById('pTelefono').value.trim(), correo: document.getElementById('pCorreo').value.trim() };
+    const campos = { telefono: 'pTelefono', correo: 'pCorreo' };
+    try {
+        await api('/api/portal/perfil', { method: 'PUT', body });
+        marcarErrores(campos, null);
+        toast('Datos actualizados');
+        await cargar();
+    } catch (err) {
+        marcarErrores(campos, err.errores);
+        toast(err.message, 'error');
+    }
+}
+
+async function cambiarPassword(e) {
+    e.preventDefault();
+    const nueva = document.getElementById('pwNueva').value;
+    if (nueva !== document.getElementById('pwRepetir').value) {
+        document.getElementById('pwRepetir').classList.add('is-invalid');
+        toast('Las contraseñas nuevas no coinciden', 'error');
+        return;
+    }
+    document.getElementById('pwRepetir').classList.remove('is-invalid');
+    try {
+        await api('/api/portal/password', { method: 'POST', body: { actual: document.getElementById('pwActual').value, nueva } });
+        document.getElementById('formPassword').reset();
+        toast('Contraseña actualizada');
+    } catch (err) {
+        marcarErrores({ actual: 'pwActual', nueva: 'pwNueva' }, err.errores);
+        toast(err.message, 'error');
+    }
+}
+
+/* ---------- Inicio ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+    modal.confirmar = new bootstrap.Modal('#modalConfirmar');
+    modal.vehiculo = new bootstrap.Modal('#modalVehiculo');
+    toastInstance = new bootstrap.Toast('#toast', { delay: 3500 });
+    const hoy = new Date().toLocaleDateString('es-EC', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    document.getElementById('fechaHoy').textContent = hoy.charAt(0).toUpperCase() + hoy.slice(1);
+    document.getElementById('avatarIniciales').textContent =
+        String(NOMBRE_USUARIO).split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase() || 'C';
+    cargar();
+});
+</script>
+</body>
+</html>
