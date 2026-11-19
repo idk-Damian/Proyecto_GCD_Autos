@@ -12,6 +12,7 @@ target/
 
 # Herramientas locales
 weppy-project-sync/
+Claude outputs/
 
 # Sistema
 .DS_Store
